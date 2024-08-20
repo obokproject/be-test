@@ -59,6 +59,7 @@ app.use(
       secure: false, // 개발 환경에서는 HTTPS를 사용하지 않으므로 false로 설정
       httpOnly: true, // 클라이언트 자바스크립트에서 쿠키에 접근하지 못하도록 설정
       sameSite: "Lax", // 개발 환경에서는 'Lax'로 설정
+      maxAge: 1 * 60 * 60 * 1000, // 24시간 동안 세션 유지
     },
   })
 );

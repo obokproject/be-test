@@ -8,7 +8,6 @@ module.exports = (pool) => ({
           console.error("Session save error:", err);
           return res.status(500).send("Internal Server Error");
         }
-        console.log("test");
         res.redirect("http://localhost:3000");
       });
     } catch (error) {
@@ -20,9 +19,10 @@ module.exports = (pool) => ({
   logout: (req, res) => {
     req.logout((err) => {
       if (err) {
-        return next(err);
+        return res.status(500).json({ message: "Logout failed", error: err });
       }
-      res.redirect("http://localhost:3000");
+      res.clearCookie("connect.sid"); // 세션 쿠키 제거
+      res.status(200).json({ message: "Logged out successfully" });
     });
   },
 
