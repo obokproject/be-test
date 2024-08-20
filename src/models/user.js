@@ -53,13 +53,13 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  // User.associate = (models) => {
-  //   User.hasMany(models.Room, { foreignKey: "user_id" });
-  //   User.hasMany(models.Member, { foreignKey: "user_id" });
-  //   User.hasMany(models.Chat, { foreignKey: "user_id" });
-  //   User.hasMany(models.Kanban, { foreignKey: "user_id" });
-  //   User.hasMany(models.Content, { foreignKey: "user_id" });
-  // };
+  User.associate = (models) => {
+    User.hasMany(models.Room, { foreignKey: "user_id" });
+    User.hasMany(models.Member, { foreignKey: "user_id" });
+    User.hasMany(models.Chat, { foreignKey: "user_id" });
+    User.hasMany(models.Kanban, { foreignKey: "user_id" });
+    User.hasMany(models.Content, { foreignKey: "user_id" });
+  };
 
   return User;
 };
