@@ -1,6 +1,20 @@
 module.exports = (pool) => ({
-  googlCallback: async (req, res) => {
-    res.redirect("http://localhost:3000");
+  googleCallback: async (req, res) => {
+    try {
+      // 여기에 세션 저장 로직 추가 (필요시)
+      console.log(res);
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).send("Internal Server Error");
+        }
+        console.log("test");
+        res.redirect("http://localhost:3000");
+      });
+    } catch (error) {
+      console.error("Google callback error:", error);
+      res.status(500).send("Internal Server Error");
+    }
   },
 
   logout: (req, res) => {
@@ -21,12 +35,12 @@ module.exports = (pool) => ({
   },
 
   getUserById: async (id) => {
-    const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [id]);
+    const [rows] = await pool.query("SELECT * FROM user WHERE id = ?", [id]);
     return rows[0] || null;
   },
 
   findOrCreateUser: async (profile) => {
-    const [rows] = await pool.query("SELECT * FROM users WHERE google_id = ?", [
+    const [rows] = await pool.query("SELECT * FROM user WHERE social_id = ?", [
       profile.id,
     ]);
 
@@ -35,7 +49,7 @@ module.exports = (pool) => ({
     }
 
     const [result] = await pool.query(
-      "INSERT INTO users (google_id, email, name, profile_url) VALUES (?, ?, ?, ?)",
+      "INSERT INTO user (social_id, email, nickname, profile_image) VALUES (?, ?, ?, ?)",
       [
         profile.id,
         profile.emails[0].value,
@@ -46,10 +60,10 @@ module.exports = (pool) => ({
 
     return {
       id: result.insertId,
-      google_id: profile.id,
+      social_id: profile.id,
       email: profile.emails[0].value,
-      name: profile.displayName,
-      profileImage: profile.photos[0].value,
+      nickname: profile.displayName,
+      profile_image: profile.photos[0].value,
     };
   },
 });

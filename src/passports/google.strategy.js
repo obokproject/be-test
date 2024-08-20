@@ -23,14 +23,18 @@ module.exports = (pool) => {
   );
 
   passport.serializeUser((user, done) => {
+    console.log("Serializing user:", user);
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id, done) => {
+    console.log("Deserializing user with ID:", id);
     try {
       const user = await authController.getUserById(id);
+      console.log("User found:", user);
       done(null, user);
     } catch (error) {
+      console.error("Error deserializing user:", error);
       done(error, null);
     }
   });

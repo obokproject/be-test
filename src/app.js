@@ -3,6 +3,7 @@ const cors = require("cors");
 const passport = require("passport");
 const session = require("express-session");
 const mysql = require("mysql2/promise");
+const db = require("./models"); // Sequelize 모델 불러오기
 
 const app = express();
 
@@ -18,6 +19,16 @@ const pool = mysql.createPool({
   queueLimit: 0, //대기열의 최대 길이를 설정합니다 (0은 무제한)
 });
 
+// 데이터베이스 연결 및 테이블 동기화
+db.sequelize
+  .sync({ force: false })
+  .then(() => {
+    console.log("Database synced successfully.");
+  })
+  .catch((err) => {
+    console.error("Error syncing database:", err);
+  });
+
 // 미들웨어 설정
 app.use(
   cors({
@@ -27,14 +38,31 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET,
+//     resave: false,
+//     saveUninitialized: false,
+//     cookie: {
+//       secure: process.env.NODE_ENV === "production", // 프로덕션 환경에서만 HTTPS를 사용
+//       httpOnly: true, // 클라이언트에서 자바스크립트로 쿠키 접근 방지
+//       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // 개발 중에는 'Lax', 프로덕션에서는 'None'으로 설정
+//     },
+//   })
+// );
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production" },
+    cookie: {
+      secure: false, // 개발 환경에서는 HTTPS를 사용하지 않으므로 false로 설정
+      httpOnly: true, // 클라이언트 자바스크립트에서 쿠키에 접근하지 못하도록 설정
+      sameSite: "Lax", // 개발 환경에서는 'Lax'로 설정
+    },
   })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 

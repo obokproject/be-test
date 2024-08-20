@@ -1,4 +1,4 @@
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
     "User",
     {
@@ -7,35 +7,59 @@ module.exports = (sequelize) => {
         primaryKey: true,
         autoIncrement: true,
       },
-      googleId: {
-        type: DataTypes.STRING,
-        unique: true,
+      social_id: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
+      social_type: {
+        type: DataTypes.ENUM("kakao", "google"),
+      },
+      job: {
+        type: DataTypes.STRING(255),
       },
       email: {
-        type: DataTypes.STRING,
-        allowNull: false,
+        type: DataTypes.STRING(255),
         unique: true,
         validate: {
           isEmail: true,
         },
       },
-      profileImage: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
       nickname: {
-        type: DataTypes.STRING(20),
-        allowNull: true,
+        type: DataTypes.STRING(50),
+        unique: true,
       },
-      job: {
-        type: DataTypes.STRING(12),
-        allowNull: true,
+      profile_image: {
+        type: DataTypes.STRING(255),
+      },
+      role: {
+        type: DataTypes.ENUM("user", "admin"),
+      },
+      created_at: {
+        type: DataTypes.DATE,
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+      },
+      deleted_at: {
+        type: DataTypes.DATE,
+      },
+      last_login_at: {
+        type: DataTypes.DATE,
       },
     },
     {
-      timestamps: true,
+      tableName: "user",
+      timestamps: false,
     }
   );
+
+  // User.associate = (models) => {
+  //   User.hasMany(models.Room, { foreignKey: "user_id" });
+  //   User.hasMany(models.Member, { foreignKey: "user_id" });
+  //   User.hasMany(models.Chat, { foreignKey: "user_id" });
+  //   User.hasMany(models.Kanban, { foreignKey: "user_id" });
+  //   User.hasMany(models.Content, { foreignKey: "user_id" });
+  // };
 
   return User;
 };
