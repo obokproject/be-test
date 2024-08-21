@@ -28,13 +28,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
         allowNull: false,
       },
-      created_at: {
-        type: DataTypes.DATE,
-      },
     },
     {
       tableName: "chat",
-      timestamps: false,
+      timestamps: true,
+      paranoid: true,
     }
   );
 

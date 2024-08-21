@@ -21,7 +21,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       tableName: "keyword",
-      timestamps: false,
+      timestamps: true,
+      paranoid: true,
     }
   );
 

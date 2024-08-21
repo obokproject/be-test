@@ -22,7 +22,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       tableName: "chatkeyword",
-      timestamps: false,
+      timestamps: true,
+      paranoid: true,
     }
   );
 

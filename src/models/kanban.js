@@ -27,19 +27,11 @@ module.exports = (sequelize, DataTypes) => {
       section: {
         type: DataTypes.STRING(50),
       },
-      created_at: {
-        type: DataTypes.DATE,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-      },
-      deleted_at: {
-        type: DataTypes.DATE,
-      },
     },
     {
       tableName: "kanban",
-      timestamps: false,
+      timestamps: true,
+      paranoid: true,
     }
   );
 
