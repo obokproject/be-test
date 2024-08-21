@@ -26,16 +26,11 @@ module.exports = (sequelize, DataTypes) => {
       role: {
         type: DataTypes.ENUM("host", "guest"),
       },
-      created_at: {
-        type: DataTypes.DATE,
-      },
-      deleted_at: {
-        type: DataTypes.DATE,
-      },
     },
     {
       tableName: "member",
-      timestamps: false,
+      timestamps: true,
+      paranoid: true,
       uniqueKeys: {
         room_user_unique: {
           fields: ["room_id", "user_id"],

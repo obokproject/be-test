@@ -36,19 +36,11 @@ module.exports = (sequelize, DataTypes) => {
       content: {
         type: DataTypes.STRING(50),
       },
-      created_at: {
-        type: DataTypes.DATE,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-      },
-      deleted_at: {
-        type: DataTypes.DATE,
-      },
     },
     {
       tableName: "content",
-      timestamps: false,
+      timestamps: true,
+      paranoid: true,
     }
   );
 

@@ -36,22 +36,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         defaultValue: 10,
       },
-      created_at: {
-        type: DataTypes.DATE,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-      },
-      deleted_at: {
-        type: DataTypes.DATE,
-      },
       status: {
         type: DataTypes.ENUM("active", "completed", "closed", "open"),
       },
     },
     {
       tableName: "room",
-      timestamps: false,
+      timestamps: true,
+      paranoid: true,
     }
   );
 

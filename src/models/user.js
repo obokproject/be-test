@@ -34,22 +34,14 @@ module.exports = (sequelize, DataTypes) => {
       role: {
         type: DataTypes.ENUM("user", "admin"),
       },
-      created_at: {
-        type: DataTypes.DATE,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-      },
-      deleted_at: {
-        type: DataTypes.DATE,
-      },
       last_login_at: {
         type: DataTypes.DATE,
       },
     },
     {
       tableName: "user",
-      timestamps: false,
+      timestamps: true,
+      paranoid: true,
     }
   );
 
