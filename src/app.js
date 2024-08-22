@@ -38,18 +38,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(
-//   session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: false,
-//     saveUninitialized: false,
-//     cookie: {
-//       secure: process.env.NODE_ENV === "production", // 프로덕션 환경에서만 HTTPS를 사용
-//       httpOnly: true, // 클라이언트에서 자바스크립트로 쿠키 접근 방지
-//       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // 개발 중에는 'Lax', 프로덕션에서는 'None'으로 설정
-//     },
-//   })
-// );
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -73,6 +62,10 @@ require("./passports/google.strategy")(pool);
 // 라우트 설정
 const authRoutes = require("./routes/authRoute")(pool);
 app.use("/auth", authRoutes);
+
+// 새롭게 추가된 chatRoute
+const chatRoutes = require("./routes/chatRoute"); // chatRoute 불러오기
+app.use("/chat", chatRoutes); // '/chat' 경로 하위의 라우트를 chatRoutes에서 처리
 
 // 에러 핸들링 미들웨어
 app.use((err, req, res, next) => {

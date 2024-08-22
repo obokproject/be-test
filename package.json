@@ -19,7 +19,8 @@
     "mysql2": "^3.11.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "sequelize": "^6.37.3"
+    "sequelize": "^6.37.3",
+    "socket.io": "^4.7.5"
   },
   "proxy": "http://localhost:5000"
 }
