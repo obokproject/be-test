@@ -31,6 +31,8 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", async (data) => {
     const { roomId, userId } = data;
     socket.join(roomId); // 클라이언트를 특정 방에 추가
+    socket.roomId = roomId; // 소켓에 roomId 저장
+    socket.userId = userId; // 소켓에 userId 저장
     console.log(`Client joined room: ${roomId}`);
 
     // 멤버 테이블에 사용자 추가 (기본 role은 guest)
@@ -44,37 +46,122 @@ io.on("connection", (socket) => {
       const intRoomId = room.id;
 
       // 기존 멤버 조회
-      const existingMembers = await db.Member.findAll({
+      let updatedMembers = await db.Member.findAll({
         where: { room_id: intRoomId },
         order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: db.User, // User 모델과 조인
+            attributes: ["nickname", "job", "profile_image"], // 필요한 속성만 선택
+          },
+        ],
+      });
+      console.log("Updated Members:", updatedMembers); // 멤버 리스트를 로그로 출력하여 확인
+
+      // 논리적으로 삭제된 멤버가 있는지 확인 (복원할 멤버가 있는지 확인)
+      let existingMember = await db.Member.findOne({
+        where: { room_id: intRoomId, user_id: userId },
+        paranoid: false, // 논리적으로 삭제된 레코드도 조회
       });
 
-      let role = "guest";
-      // 방에 첫 번째로 들어오는 사용자라면 host로 지정
-      if (existingMembers.length === 0) {
-        role = "host";
+      let role = "guest"; // 기본 role을 'guest'로 설정
+
+      if (existingMember) {
+        // 논리적으로 삭제된 멤버가 있다면 복원
+        await existingMember.restore();
+        console.log(`Restored member: userId ${userId} in roomId ${intRoomId}`);
+
+        // 현재 호스트가 있는지 확인
+        const currentHost = await db.Member.findOne({
+          where: {
+            room_id: intRoomId,
+            role: "host",
+            user_id: { [db.Sequelize.Op.ne]: userId }, // 자기 자신을 제외
+          },
+        });
+
+        // 호스트가 이미 있다면 복원된 멤버의 역할을 guest로 변경
+        if (currentHost) {
+          role = "guest"; // 이미 호스트가 있으면 역할을 guest로 변경
+          await existingMember.update({ role: role });
+          console.log(
+            `Updated role to guest for userId ${userId} in roomId ${intRoomId}`
+          );
+        } else {
+          role = "host"; // 호스트가 없으면 복원된 멤버가 호스트 역할을 유지
+          console.log(
+            `Restored member keeps host role: userId ${userId} in roomId ${intRoomId}`
+          );
+        }
+      } else {
+        // 방에 첫 번째로 들어오는 사용자라면 host로 지정
+        if (updatedMembers.length === 0) {
+          role = "host";
+        }
+
+        // 새로운 멤버 추가
+        await db.Member.create({
+          room_id: intRoomId,
+          user_id: userId,
+          role: role,
+        });
+        console.log(
+          `Member added: userId ${userId} as ${role} in roomId ${intRoomId}`
+        );
       }
 
-      // 새로운 멤버 추가
-      await db.Member.create({
-        room_id: intRoomId,
-        user_id: userId,
-        role: role,
+      // 멤버 정보 업데이트 후 다시 가져오기
+      updatedMembers = await db.Member.findAll({
+        where: { room_id: intRoomId },
+        order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: db.User,
+            attributes: ["nickname", "job", "profile_image"],
+          },
+        ],
       });
-      console.log(
-        `Member added: userId ${userId} as ${role} in roomId ${intRoomId}`
+
+      // 멤버 정보를 프론트엔드로 전송
+      io.to(roomId).emit(
+        "memberUpdate",
+        updatedMembers.map((member) => ({
+          userId: member.user_id,
+          nickname: member.User ? member.User.nickname : "Unknown",
+          job: member.User ? member.User.job : "Unknown",
+          profile: member.User
+            ? member.User.profile_image
+            : "default-profile.png",
+          role: member.role,
+        }))
       );
 
       // 이전 메시지와 키워드를 DB에서 조회
       const previousMessages = await db.Chat.findAll({
         where: { room_id: intRoomId },
+        include: [
+          {
+            model: db.User, // User 모델과 조인하여 사용자 정보 가져오기
+            attributes: ["nickname", "job", "profile_image"], // 필요한 속성만 선택
+          },
+        ],
       });
       const previousKeywords = await db.Chatkeyword.findAll({
         where: { room_id: intRoomId },
       });
 
       // 클라이언트로 이전 메시지와 키워드를 전송
-      socket.emit("previousMessages", previousMessages);
+      socket.emit(
+        "previousMessages",
+        previousMessages.map((msg) => ({
+          content: msg.content,
+          user_id: msg.user_id,
+          profile: msg.User ? msg.User.profile_image : "default-profile.png", // 프로필 정보
+          nickname: msg.User ? msg.User.nickname : "Unknown", // 닉네임 정보
+          job: msg.User ? msg.User.job : "Unknown", // 직업 정보
+        }))
+      );
+
       socket.emit(
         "previousKeywords",
         previousKeywords.map((k) => k.keyword)
@@ -106,13 +193,20 @@ io.on("connection", (socket) => {
         content: content,
       });
 
-      // 추출된 키워드를 ChatKeyword 테이블에 저장
-      if (keywords.length > 0) {
-        for (const keyword of keywords) {
+      // 중복되지 않은 키워드만 ChatKeyword 테이블에 저장
+      for (const keyword of keywords) {
+        try {
           await db.Chatkeyword.create({
             room_id: room.id,
             keyword: keyword,
           });
+        } catch (error) {
+          if (error.name === "SequelizeUniqueConstraintError") {
+            console.log(`Keyword ${keyword} already exists, skipping...`);
+            continue; // 중복된 키워드가 있으면 건너뛰기
+          } else {
+            throw error; // 다른 에러가 있으면 예외 처리
+          }
         }
       }
 
@@ -148,21 +242,36 @@ io.on("connection", (socket) => {
   });
 
   // 사용자가 방에서 나갈 때 처리
-  socket.on("leaveRoom", async ({ roomId, userId }) => {
+  socket.on("disconnect", async () => {
+    const roomId = socket.roomId; // 저장된 roomId 가져오기
+    const userId = socket.userId; // 저장된 userId 가져오기
+
+    if (!roomId || !userId) {
+      console.error("Missing roomId or userId during disconnect.");
+      return;
+    }
+
     try {
+      // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
+      const room = await db.Room.findOne({ where: { uuid: roomId } });
+      if (!room) {
+        throw new Error("Room not found");
+      }
+      const intRoomId = room.id; // 정수형 room_id
+
       // 멤버 테이블에서 제거
       await db.Member.destroy({
         where: {
-          room_id: roomId,
+          room_id: intRoomId,
           user_id: userId,
         },
       });
 
-      console.log(`Member removed: userId ${userId} from roomId ${roomId}`);
+      console.log(`Member removed: userId ${userId} from roomId ${intRoomId}`);
 
       // 호스트가 나갔을 경우 새로운 호스트 지정
       const remainingMembers = await db.Member.findAll({
-        where: { room_id: roomId },
+        where: { room_id: intRoomId },
         order: [["createdAt", "ASC"]],
       });
 
@@ -174,14 +283,31 @@ io.on("connection", (socket) => {
 
       // 클라이언트에게 업데이트된 멤버 정보 전송
       io.to(roomId).emit("memberUpdate", { userId, action: "left" });
+
+      // 멤버 정보를 다시 클라이언트로 전송하여 갱신된 멤버 리스트를 보냄
+      const updatedMembers = await db.Member.findAll({
+        where: { room_id: intRoomId },
+        include: [
+          { model: db.User, attributes: ["nickname", "job", "profile_image"] },
+        ],
+      });
+
+      io.to(roomId).emit(
+        "memberUpdate",
+        updatedMembers.map((member) => ({
+          userId: member.user_id,
+          nickname: member.User ? member.User.nickname : "Unknown",
+          job: member.User ? member.User.job : "Unknown",
+          profile: member.User
+            ? member.User.profile_image
+            : "default-profile.png",
+          role: member.role,
+        }))
+      );
     } catch (error) {
       console.error("Error leaving room:", error);
       socket.emit("error", "Failed to leave room");
     }
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
   });
 });
 
