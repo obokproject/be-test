@@ -8,7 +8,10 @@ const sequelize = new Sequelize(
   config.database,
   config.username,
   config.password,
-  config
+  {
+    ...config, // 기존 config 객체를 펼쳐서 넣습니다.
+    logging: false, // logging 옵션을 false로 설정하여 쿼리 로그를 비활성화합니다.
+  }
 );
 
 db.Sequelize = Sequelize;
