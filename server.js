@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
       // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) {
-        throw new Error("Room not found");
+        throw new Error("Room not found22222");
       }
 
       const intRoomId = room.id;
@@ -180,7 +180,8 @@ io.on("connection", (socket) => {
       // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) {
-        throw new Error("Room not found");
+        console.log("asdfasdfasdfasdf");
+        throw new Error("Room not found3333333333");
       }
       // 키워드 추출
       const keywords = extractKeywords(content);
@@ -255,7 +256,8 @@ io.on("connection", (socket) => {
       // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) {
-        throw new Error("Room not found");
+        console.log("aaaaaaaaaaaaaaa");
+        throw new Error("Room not found444444444");
       }
       const intRoomId = room.id; // 정수형 room_id
 
