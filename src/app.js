@@ -67,6 +67,9 @@ app.use("/auth", authRoutes);
 const chatRoutes = require("./routes/chatRoute"); // chatRoute 불러오기
 app.use("/chat", chatRoutes); // '/chat' 경로 하위의 라우트를 chatRoutes에서 처리
 
+const roomRoutes = require("./routes/roomRoute");
+app.use("/main", roomRoutes);
+
 // 에러 핸들링 미들웨어
 app.use((err, req, res, next) => {
   console.error(err.stack);
