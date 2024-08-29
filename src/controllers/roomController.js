@@ -1,4 +1,4 @@
-const { Room, Keyword, Member, Sequelize } = require("../models");
+const { Room, Keyword, Member, User, Sequelize } = require("../models");
 
 // 방 목록 가져오기
 exports.getRooms = async (req, res) => {
@@ -14,6 +14,10 @@ exports.getRooms = async (req, res) => {
           model: Member,
           attributes: [],
         },
+        {
+          model: User, // User 모델을 포함시켜 user_id에 해당하는 데이터를 가져옴
+          attributes: ["nickname"], // nickname만 가져옴
+        },
       ],
       attributes: {
         include: [
@@ -23,7 +27,7 @@ exports.getRooms = async (req, res) => {
           ],
         ],
       },
-      group: ["Room.id", "Keywords.id"],
+      group: ["Room.id", "Keywords.id", "User.id"],
     });
 
     const roomsWithParticipants = rooms.map((room) => {
@@ -31,6 +35,7 @@ exports.getRooms = async (req, res) => {
         ...room.toJSON(),
         participants: room.get("participantsCount"),
         keywords: room.Keywords.map((keyword) => keyword.keyword),
+        nickname: room.User.nickname,
       };
     });
 
