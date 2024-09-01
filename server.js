@@ -35,6 +35,10 @@ io.on("connection", (socket) => {
     socket.userId = userId; // 소켓에 userId 저장
     console.log(`Client joined room: ${roomId}`);
 
+    // 이전 칸반 보드 데이터 전송
+    const previousBoardData = await fetchPreviousBoardData(roomId);
+    socket.emit("previousBoardData", previousBoardData);
+
     // 멤버 테이블에 사용자 추가 (기본 role은 guest)
     try {
       // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
@@ -242,6 +246,22 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("boardUpdate", async ({ roomId, sections }) => {
+    // 데이터베이스에 업데이트된 칸반 보드 데이터 저장
+    await updateBoardData(roomId, sections);
+
+    // 같은 방의 다른 클라이언트들에게 업데이트 전송
+    io.to(roomId).emit("boardUpdate", sections);
+  });
+
+  socket.on("addCard", async ({ roomId, sectionId, card }) => {
+    // 데이터베이스에 새 카드 추가
+    await addCardToDatabase(roomId, sectionId, card);
+
+    // 같은 방의 다른 클라이언트들에게 업데이트 전송
+    const updatedSections = await fetchPreviousBoardData(roomId);
+    io.to(roomId).emit("boardUpdate", updatedSections);
+  });
   // 사용자가 방에서 나갈 때 처리
   socket.on("disconnect", async () => {
     const roomId = socket.roomId; // 저장된 roomId 가져오기
