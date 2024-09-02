@@ -160,4 +160,59 @@ module.exports = (pool) => ({
     await newUser.update({ last_login_at: new Date() });
     return newUser;
   },
+
+  updateUser: async (req, res) => {
+    try {
+      const { id, nickname, job, profile_image } = req.body;
+
+      // 사용자 찾기
+      const user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // 닉네임 중복 확인 (현재 사용자의 닉네임은 제외)
+      const existingUser = await User.findOne({
+        where: {
+          nickname,
+          id: { [Op.ne]: id }, // 현재 사용자 ID는 제외
+        },
+      });
+      if (existingUser) {
+        return res.status(400).json({ message: "Nickname already exists" });
+      }
+
+      // 사용자 정보 업데이트
+      await user.update({
+        nickname,
+        job,
+        profile_image,
+      });
+
+      res.status(200).json({ message: "User updated successfully", user });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  // 프로필 이미지 삭제 함수
+  deleteImage: async (req, res) => {
+    try {
+      const { userId } = req.body;
+
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // 프로필 이미지 필드를 null로 설정
+      await user.update({ profile_image: null });
+
+      res.status(200).json({ message: "Profile image deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting profile image:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
 });
