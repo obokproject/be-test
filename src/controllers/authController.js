@@ -131,33 +131,6 @@ module.exports = (pool) => ({
     return rows[0] || null;
   },
 
-  // findOrCreateUser: async (profile) => {
-  //   const [rows] = await pool.query("SELECT * FROM user WHERE social_id = ?", [
-  //     profile.id,
-  //   ]);
-
-  //   if (rows.length) {
-  //     return rows[0];
-  //   }
-
-  //   const [result] = await pool.query(
-  //     "INSERT INTO user (social_id, email, nickname, profile_image) VALUES (?, ?, ?, ?)",
-  //     [
-  //       profile.id,
-  //       profile.emails[0].value,
-  //       profile.displayName,
-  //       profile.photos[0].value,
-  //     ]
-  //   );
-
-  //   return {
-  //     id: result.insertId,
-  //     social_id: profile.id,
-  //     email: profile.emails[0].value,
-  //     nickname: profile.displayName,
-  //     profile_image: profile.photos[0].value,
-  //   };
-  // },
   findOrCreateUser: async (profile) => {
     // 1. social_id로 사용자를 찾습니다.
     const user = await User.findOne({

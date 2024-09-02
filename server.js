@@ -35,10 +35,6 @@ io.on("connection", (socket) => {
     socket.userId = userId; // 소켓에 userId 저장
     console.log(`Client joined room: ${roomId}`);
 
-    // 이전 칸반 보드 데이터 전송
-    const previousBoardData = await fetchPreviousBoardData(roomId);
-    socket.emit("previousBoardData", previousBoardData);
-
     // 멤버 테이블에 사용자 추가 (기본 role은 guest)
     try {
       // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
