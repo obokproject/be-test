@@ -34,6 +34,7 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ip addr
+          ls -lsa
           ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST}
           git pull origin main &&
           npm install &&
