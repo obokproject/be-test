@@ -262,6 +262,7 @@ io.on("connection", (socket) => {
   // RoomInfo를 위한 새로운 이벤트 핸들러
 
   socket.on("getRoomInfo", async (uuid) => {
+    console.log("> getRoomInfo");
     try {
       const room = await db.Room.findOne({
         where: { uuid },
@@ -272,7 +273,7 @@ io.on("connection", (socket) => {
           },
           {
             model: db.User,
-            attributes: ["username", "job"],
+            attributes: ["nickname", "job"],
           },
           {
             model: db.Member,
@@ -298,7 +299,7 @@ io.on("connection", (socket) => {
       const roomInfo = {
         title: room.title,
         creator: {
-          name: room.User.username,
+          name: room.User.nickname,
           job: room.User.job,
         },
         member: room.get("memberCount"),
