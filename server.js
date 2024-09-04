@@ -258,6 +258,62 @@ io.on("connection", (socket) => {
     const updatedSections = await fetchPreviousBoardData(roomId);
     io.to(roomId).emit("boardUpdate", updatedSections);
   });
+
+  // RoomInfo를 위한 새로운 이벤트 핸들러
+
+  socket.on("getRoomInfo", async (uuid) => {
+    try {
+      const room = await db.Room.findOne({
+        where: { uuid },
+        include: [
+          {
+            model: db.Keyword,
+            attributes: ["keyword"],
+          },
+          {
+            model: db.User,
+            attributes: ["username", "job"],
+          },
+          {
+            model: db.Member,
+            attributes: [],
+          },
+        ],
+        attributes: {
+          include: [
+            [
+              db.Sequelize.fn("COUNT", db.Sequelize.col("Members.id")),
+              "memberCount",
+            ],
+          ],
+        },
+        group: ["Room.id", "Keywords.id", "User.id"],
+      });
+
+      if (!room) {
+        socket.emit("roomError", { message: "Room not found" });
+        return;
+      }
+
+      const roomInfo = {
+        title: room.title,
+        creator: {
+          name: room.User.username,
+          job: room.User.job,
+        },
+        member: room.get("memberCount"),
+        maxMember: room.max_member,
+        keywords: room.Keywords.map((k) => k.keyword),
+        duration: room.duration,
+      };
+
+      socket.emit("roomInfo", roomInfo);
+    } catch (error) {
+      console.error("Error fetching room:", error);
+      socket.emit("roomError", { message: "Failed to fetch room" });
+    }
+  });
+
   // 사용자가 방에서 나갈 때 처리
   socket.on("disconnect", async () => {
     const roomId = socket.roomId; // 저장된 roomId 가져오기
