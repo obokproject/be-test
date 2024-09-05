@@ -44,6 +44,17 @@ io.on("connection", (socket) => {
       }
 
       const intRoomId = room.id;
+      const realRoom = {
+        id: room.id,
+        title: room.title, // room 테이블의 다른 필드들 추가
+        userId: room.user_id, // room의 생성자 정보 (예시)
+        createdAt: room.createdAt, // 생성 시간 (예시)
+        // 필요한 다른 필드들도 추가 가능
+      };
+
+      // 클라이언트로 realRoom 정보를 전송
+      socket.emit("realRoom", realRoom);
+      console.log("realroom : ", realRoom);
 
       // 기존 멤버 조회
       let updatedMembers = await db.Member.findAll({
@@ -72,27 +83,13 @@ io.on("connection", (socket) => {
         console.log(`Restored member: userId ${userId} in roomId ${intRoomId}`);
 
         // 현재 호스트가 있는지 확인
-        const currentHost = await db.Member.findOne({
-          where: {
-            room_id: intRoomId,
-            role: "host",
-            user_id: { [db.Sequelize.Op.ne]: userId }, // 자기 자신을 제외
-          },
-        });
-
-        // 호스트가 이미 있다면 복원된 멤버의 역할을 guest로 변경
-        if (currentHost) {
-          role = "guest"; // 이미 호스트가 있으면 역할을 guest로 변경
-          await existingMember.update({ role: role });
-          console.log(
-            `Updated role to guest for userId ${userId} in roomId ${intRoomId}`
-          );
-        } else {
-          role = "host"; // 호스트가 없으면 복원된 멤버가 호스트 역할을 유지
-          console.log(
-            `Restored member keeps host role: userId ${userId} in roomId ${intRoomId}`
-          );
-        }
+        // const currentHost = await db.Member.findOne({
+        //   where: {
+        //     room_id: intRoomId,
+        //     role: "host",
+        //     user_id: { [db.Sequelize.Op.ne]: userId }, // 자기 자신을 제외
+        //   },
+        // });
       } else {
         // 방에 첫 번째로 들어오는 사용자라면 host로 지정
         if (updatedMembers.length === 0) {
@@ -135,6 +132,9 @@ io.on("connection", (socket) => {
           role: member.role,
         }))
       );
+
+      // 업데이트될때 RoomInfo에 보냄
+      io.to(roomId).emit("roomUpdated");
 
       // 이전 메시지와 키워드를 DB에서 조회
       const previousMessages = await db.Chat.findAll({
@@ -273,7 +273,7 @@ io.on("connection", (socket) => {
           },
           {
             model: db.User,
-            attributes: ["nickname", "job"],
+            attributes: ["nickname", "job", "profile_image"],
           },
           {
             model: db.Member,
@@ -298,14 +298,18 @@ io.on("connection", (socket) => {
 
       const roomInfo = {
         title: room.title,
+        user_id: room.user_id,
         creator: {
           name: room.User.nickname,
           job: room.User.job,
+          profile_image: room.User.profile_image,
         },
         member: room.get("memberCount"),
         maxMember: room.max_member,
         keywords: room.Keywords.map((k) => k.keyword),
         duration: room.duration,
+        createAt: room.createAt,
+        type: room.type,
       };
 
       socket.emit("roomInfo", roomInfo);
@@ -344,18 +348,6 @@ io.on("connection", (socket) => {
 
       console.log(`Member removed: userId ${userId} from roomId ${intRoomId}`);
 
-      // 호스트가 나갔을 경우 새로운 호스트 지정
-      const remainingMembers = await db.Member.findAll({
-        where: { room_id: intRoomId },
-        order: [["createdAt", "ASC"]],
-      });
-
-      if (remainingMembers.length > 0) {
-        const newHost = remainingMembers[0]; // 가장 먼저 입장한 멤버를 호스트로 지정
-        await db.Member.update({ role: "host" }, { where: { id: newHost.id } });
-        console.log(`New host assigned: userId ${newHost.user_id}`);
-      }
-
       // 클라이언트에게 업데이트된 멤버 정보 전송
       io.to(roomId).emit("memberUpdate", { userId, action: "left" });
 
@@ -379,6 +371,8 @@ io.on("connection", (socket) => {
           role: member.role,
         }))
       );
+      // roominfo에 보냄
+      io.to(roomId).emit("roomUpdated");
     } catch (error) {
       console.error("Error leaving room:", error);
       socket.emit("error", "Failed to leave room");
