@@ -1,45 +1,34 @@
-# obok team's project
+# Razvery - 프론트엔드
 
-"Razvery"<br>
-<br>
-단순 브레인스토밍을 떠나 마인드맵의 시각화, 만다라트 등 다양한 아이디어를 분야별 사람들 또는 새로운 영역의 아이디어를 실시간 공유하는 서비스.
-참여자들은 닉네임(XXX[분야선택], XXX개발자)을 통해 자신의 전문분야를 바탕으로 주제에서 비롯한 다양한 생각을 호스트와 함께 참여한 유저간 공유한다. <br>
-실시간 협업을 통해 즉시 문제를 처리하여 보다 빠른 Ideation이 가능하다.
-또한 제한시간으로 인해 길어지는 불필요한 시간의 연장을 차단한다. 나아가 호스트는 제시한 내용을 바탕으로 팀웍등을 원할시 참여했던 유저에게 요청으로 통해 추가업무가 가능하다. 현재 구현할 서비스의 핵심기능은 브레인스토밍채팅과 보드 형태이다.<br>
-<br>
-ex) "커피업체의 친환경 제품"라는 주제로 한다면, 사용자들([학생], [물리학자], [IT개발자], [바리스타]등)은 각자 아이디어를 입력하고, 다른 사람들과 실시간으로 토론, 또는 키워드를 입력하며발전시킬 수 있음. AI를 접목시킨다면 관련된 최신 기술 트렌드나 기존 제품 사례를 제공해주고, 사용자는 이를 참고해 아이디어를 구체화할 수 있음.
+"Razvery"는 실시간으로 아이디어를 공유하는 서비스입니다. 제한 시간이 있는 채팅과 포스트잇 보드 형태가 핵심 기능입니다.
 <br>
 
-# 팀에 대한 설명
+## 팀 소개
 
-기획팀: 김상윤, 윤상수<br>
-개발팀: 박초롱, 변윤석<br>
-<br>
+- 기획팀: 김상윤, 윤상수
+- 개발팀: 박초롱, 변윤석
+  <br>
 
-# 프로젝트 기획
+## 프로젝트 기획
 
-<br>
-<br>
+- 기능정의서<br>
+- 유저저니맵, 페르소나<br>
+- 화면흐름도<br>
+  <br>
 
-# 기술 스택 및 라이브러리, 개발 환경
+## 기술 스택 및 라이브러리
 
-1. Frontend
-   React <br>
-   -TailwindCSS, Bootstrap<br>
-2. Backend
-   Express.js<br>
-3. Database
-   MySQL<br>
-   <br>
+- Express.js
+- MySQL
 
-# AWS 배포
+## AWS 배포
 
 url:<br>
 
 ```mermaid
 graph LR
     A[GitHub] --> B[Action/PM2]
-    C[MS SQL] --> B
+    C[My SQL] --> B
     B --> D[Amazon S3 Bucket]
     B --> E[EC2]
     B --> F[Amazon RDS]
@@ -55,7 +44,7 @@ graph LR
 ```
 
 GitHub에서 Action/PM2로 코드 푸시 및 배포<br>
-MS SQL에서 Action/PM2를 통해 데이터 마이그레이션<br>
+MySQL에서 Action/PM2를 통해 데이터 마이그레이션<br>
 Action/PM2에서 프론트엔드 파일을 S3 Bucket으로 배포<br>
 Action/PM2에서 백엔드 코드를 EC2로 배포<br>
 Action/PM2에서 데이터베이스 스키마 및 데이터를 Amazon RDS로 마이그레이션<br>
@@ -63,7 +52,7 @@ Amazon CloudWatch를 사용하여 전체 시스템 모니터링<br>
 
 <br>
 
-# WBS
+## WBS
 
 ```mermaid
 gantt
@@ -150,56 +139,9 @@ section 마무리
 
 <br>
 
-# 폴더 구조
+## 폴더 구조
 
 ```bash
-client/
-├── public/
-│   ├── images/
-│   └── index.html
-├── src/
-│   ├── components/
-│   │   ├── CreateRoomModal.tsx
-│   │   ├── ChatKeyword.tsx
-│   │   ├── ChatbotButton.tsx
-│   │   ├── MemberList.tsx
-│   │   ├── RoomInfo.tsx
-│   │   ├── Footer.tsx
-│   │   ├── Header.tsx
-│   │   └── LoginModal.tsx
-│   ├── contexts/
-│   │   └── AuthContext.tsx
-│   ├── hooks/
-│   │   ├── useAuth.ts
-│   │   ├── useRoom.ts
-│   │   └── useForm.ts
-│   ├── pages/
-│   │   ├── chatboard/
-│   │   │   ├── ChatBoard.tsx
-│   │   │   └── index.tsx
-│   │   ├── about/
-│   │   │   ├── AboutPage.tsx
-│   │   │   └── index.tsx
-│   │   ├── mypage/
-│   │   │   ├── MyPage.tsx
-│   │   │   └── index.tsx
-│   │   ├── kanbanboard/
-│   │   │   ├── KanbanBoard.tsx
-│   │   │   └── index.tsx
-│   │   ├── landingpage/
-│   │   │   ├── LandingPage.tsx
-│   │   │   └── index.tsx
-│   │   └── mainpage/
-│   │       ├── MainPage.tsx
-│   │       └── index.tsx
-│   ├── styles/
-│   │   └── tailwind.css
-│   ├── App.tsx
-│   ├── index.css
-│   └── index.tsx
-├── package.json
-└── tsconfig.json
-
 server/
 ├── src/
 │   ├── config/
@@ -242,104 +184,20 @@ server/
 
 <br>
 
-# 페이지 구조
+## 페이지 및 URL 구조
 
-### LandingPage
-
-- 설명: 웹사이트의 메인 페이지
-- 주요 기능: 서비스 소개, 시작하기 버튼, FAQ
-
-### MainPage
-
-- 설명: 로그인 후 메인 대시보드
-- 주요 기능: 사용자의 방 목록, 새 방 만들기
-
-### ChatBoard
-
-- 설명: 채팅 기능을 제공하는 페이지
-- 주요 기능: 실시간 채팅, 키워드 표시
-
-### KanbanBoard
-
-- 설명: 칸반 보드 기능을 제공하는 페이지
-- 주요 기능: 작업 항목 관리, 드래그 앤 드롭
-
-### MyPage
-
-- 설명: 사용자 개인 정보 및 설정 페이지
-- 주요 기능: 프로필 수정, 활동 내역 확인
-
-### AboutPage
-
-- 설명: 서비스에 대한 상세 정보 페이지
-- 주요 기능: 서비스 소개
+| 페이지      | URL             | 설명                                       | 주요 기능                                 |
+| ----------- | --------------- | ------------------------------------------ | ----------------------------------------- |
+| LandingPage | /               | 웹사이트의 메인 페이지, 로그인 및 입장하기 | - 서비스 소개<br>- 시작하기 버튼<br>- FAQ |
+| MainPage    | /main           | 로그인 후 메인 대시보드                    | - 사용자의 방 목록<br>- 새 방 만들기      |
+| ChatBoard   | /chat/:roomId   | 베리 톡(채팅방) 페이지                     | - 실시간 채팅<br>- 키워드 표시            |
+| KanbanBoard | /kanban/:roomId | 베리 보드(포스트잇) 페이지                 | - 작업 항목 관리<br>- 드래그 앤 드롭      |
+| MyPage      | /mypage         | 사용자 개인 정보 및 설정 페이지            | - 프로필 수정<br>- 활동 내역 확인         |
+| AboutPage   | /about          | 서비스 소개 및 정보 페이지                 | - 서비스 소개                             |
 
 <br>
 
-# URL 구조
-
-|
-페이지  
-|
-URL  
-|
-설명  
-|
-|
-
----
-
-## |
-
-## |
-
-|
-|
-LandingPage
-|
-/  
-|
-웹사이트 메인 페이지  
-|
-|
-MainPage  
-|
-/main  
-|
-로그인 후 메인 대시보드  
-|
-|
-ChatBoard  
-|
-/chat/:roomId  
-|
-특정 채팅방 페이지  
-|
-|
-KanbanBoard
-|
-/kanban/:roomId  
-|
-특정 칸반 보드 페이지  
-|
-|
-MyPage  
-|
-/mypage  
-|
-사용자 개인 정보 및 설정 페이지  
-|
-|
-AboutPage  
-|
-/about  
-|
-서비스 소개 및 정보 페이지  
-|
-
-<br>
-
-# 클래스 다이어그램
+## 클래스 다이어그램
 
 ```mermaid
 classDiagram
@@ -416,7 +274,7 @@ classDiagram
 
 <br>
 
-# ERD
+## ERD
 
 ```mermaid
 erDiagram
@@ -491,11 +349,88 @@ erDiagram
     }
 ```
 
-# 트러블 슈팅
+<br>
+
+## 시퀀스 다이어그램
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant AuthController
+    participant RoomController
+    participant ChatController
+    participant KanbanController
+    participant Database
+    participant WebSocket
+
+    User->>Frontend: 로그인 요청
+    Frontend->>AuthController: 소셜 로그인 요청
+    AuthController->>Database: 사용자 정보 확인/생성
+    Database-->>AuthController: 사용자 정보 반환
+    AuthController-->>Frontend: JWT 토큰 반환
+    Frontend-->>User: 로그인 성공
+
+    User->>Frontend: 메인 페이지 접속
+    Frontend->>RoomController: 방 목록 요청
+    RoomController->>Database: 방 목록 조회
+    Database-->>RoomController: 방 목록 반환
+    RoomController-->>Frontend: 방 목록 전송
+    Frontend-->>User: 방 목록 표시
+
+    User->>Frontend: 방 생성 요청
+    Frontend->>RoomController: 방 생성 요청
+    RoomController->>Database: 방 정보 저장
+    Database-->>RoomController: 저장 결과 반환
+    RoomController-->>Frontend: 방 생성 결과 반환
+    Frontend-->>User: 방 생성 결과 표시
+
+    User->>Frontend: 방 입장
+    Frontend->>WebSocket: 방 입장 이벤트 발생
+    WebSocket->>ChatController: 사용자 입장 처리
+    ChatController->>Database: 멤버 정보 저장
+    Database-->>ChatController: 저장 결과 반환
+    ChatController-->>WebSocket: 입장 알림 브로드캐스트
+    WebSocket-->>Frontend: 입장 알림 수신
+    Frontend-->>User: 채팅방 UI 표시
+
+    User->>Frontend: 채팅 메시지 전송
+    Frontend->>WebSocket: 메시지 전송 이벤트 발생
+    WebSocket->>ChatController: 메시지 처리
+    ChatController->>Database: 메시지 저장
+    Database-->>ChatController: 저장 결과 반환
+    ChatController-->>WebSocket: 메시지 브로드캐스트
+    WebSocket-->>Frontend: 새 메시지 수신
+    Frontend-->>User: 새 메시지 표시
+
+    User->>Frontend: 칸반 보드 카드 이동
+    Frontend->>WebSocket: 카드 이동 이벤트 발생
+    WebSocket->>KanbanController: 카드 이동 처리
+    KanbanController->>Database: 카드 위치 업데이트
+    Database-->>KanbanController: 업데이트 결과 반환
+    KanbanController-->>WebSocket: 카드 이동 브로드캐스트
+    WebSocket-->>Frontend: 카드 이동 정보 수신
+    Frontend-->>User: 칸반 보드 UI 업데이트
+
+    User->>Frontend: 방 나가기
+    Frontend->>WebSocket: 방 나가기 이벤트 발생
+    WebSocket->>ChatController: 사용자 퇴장 처리
+    ChatController->>Database: 멤버 정보 업데이트
+    Database-->>ChatController: 업데이트 결과 반환
+    ChatController-->>WebSocket: 퇴장 알림 브로드캐스트
+    WebSocket-->>Frontend: 퇴장 알림 수신
+    Frontend-->>User: 메인 페이지로 리다이렉트
+```
 
 <br>
 
-# 회고
+## 트러블 슈팅
+
+- 실시간 양방향 통신: Socket.io를 사용한 실시간 업데이트 구현
+- 보안 HTTPS 적용하고 싶었으나 SSL인증서를 발급받지 못했지만 Route53을 시도해 보았음
+  <br>
+
+## 회고
 
 <br>
 <br>
