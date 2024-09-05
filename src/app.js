@@ -32,7 +32,7 @@ db.sequelize
 // 미들웨어 설정
 app.use(
   cors({
-    origin: "http://localhost:3000", // 프론트엔드 URL
+    origin: process.env.LOCALHOST, // 프론트엔드 URL
     credentials: true,
   })
 );

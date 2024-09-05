@@ -10,7 +10,7 @@ const server = http.createServer(app); // 기존 Express 앱을 사용하여 HTT
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // CORS 설정 (프론트엔드 URL)
+    origin: process.env.LOCALHOST, // CORS 설정 (프론트엔드 URL)
     methods: ["GET", "POST"],
   },
 });
