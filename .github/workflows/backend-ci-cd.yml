@@ -35,9 +35,12 @@ jobs:
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ip addr
           ls -lsa
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST}
-          git pull origin main &&
-          npm install &&
-          npm run build --if-present &&
-          npm install -g pm2
-          pm2 restart be-test
+          # SSH 접속 후 명령어 실행
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} << 'EOF'
+            cd /home/ec2-user/be-test
+            git pull origin main
+            npm install
+            npm run build --if-present
+            npm install -g pm2
+            pm2 restart be-test
+          EOF
