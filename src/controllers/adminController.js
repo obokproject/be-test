@@ -1,7 +1,7 @@
 const { User, Sequelize } = require("../models");
 const { Op } = require("sequelize");
 
-module.exports = (pool) => ({
+module.exports = {
   // 모든 사용자 조회
   getAllUsers: async (req, res) => {
     try {
@@ -15,7 +15,7 @@ module.exports = (pool) => ({
           "nickname",
           "role",
           "last_login_at",
-          "created_at",
+          "createdAt",
         ],
       });
       res.json(users);
@@ -65,4 +65,4 @@ module.exports = (pool) => ({
       res.status(500).json({ message: "서버 오류가 발생했습니다." });
     }
   },
-});
+};

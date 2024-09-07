@@ -70,6 +70,10 @@ app.use("/chat", chatRoutes); // '/chat' 경로 하위의 라우트를 chatRoute
 const roomRoutes = require("./routes/roomRoute");
 app.use("/main", roomRoutes);
 
+// admin페이지
+const adminRoute = require("./routes/adminRoute");
+app.use("/admin", adminRoute);
+
 // 마이페이지 요청
 
 // 에러 핸들링 미들웨어

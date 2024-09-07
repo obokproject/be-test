@@ -93,15 +93,14 @@ async function generateUniqueNickname() {
 module.exports = (pool) => ({
   googleCallback: async (req, res) => {
     try {
-      // 여기에 세션 저장 로직 추가 (필요시)
-      console.log(res);
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-          return res.status(500).send("Internal Server Error");
+      if (req.user) {
+        const user = await User.findByPk(req.user.id);
+        if (user.role === "admin") {
+          res.redirect(`${process.env.REACT_APP_API_URL}/admin`);
+        } else {
+          res.redirect(process.env.REACT_APP_API_URL);
         }
-        res.redirect(process.env.REACT_APP_API_URL);
-      });
+      }
     } catch (error) {
       console.error("Google callback error:", error);
       res.status(500).send("Internal Server Error");
