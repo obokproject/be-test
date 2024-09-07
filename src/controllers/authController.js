@@ -1,4 +1,4 @@
-const { User } = require("../models");
+const { User, Room, Member, Sequelize } = require("../models");
 const { Op } = require("sequelize");
 
 const firstPart = [
@@ -212,6 +212,44 @@ module.exports = (pool) => ({
       res.status(200).json({ message: "Profile image deleted successfully" });
     } catch (error) {
       console.error("Error deleting profile image:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
+  //MyPage-room 활동 내역
+  getUserRoomHistory: async (req, res) => {
+    try {
+      const userId = req.user.id; // 인증된 사용자의 ID
+
+      const roomHistory = await Member.findAll({
+        where: { user_id: userId },
+        include: [
+          {
+            model: Room,
+            attributes: ["title", "type", "max_member", "createdAt"],
+            include: [
+              {
+                model: User,
+                as: "Members",
+                attributes: ["id"],
+              },
+            ],
+          },
+        ],
+        order: [[Room, "createdAt", "DESC"]],
+      });
+      // 조회된 데이터를 프론트엔드에 적합한 형식으로 가공
+      const formattedHistory = roomHistory.map((member) => ({
+        title: member.Room.title,
+        type: member.Room.type,
+        participants: member.Room.Members.length,
+        date: member.Room.createdAt.toISOString().split("T")[0],
+        entryTime: member.createdAt.toISOString().split("T")[1].substr(0, 5),
+      }));
+      // 가공된 데이터를 JSON 형식으로 응답
+      res.json(formattedHistory);
+    } catch (error) {
+      console.error("Error fetching user room history:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   },

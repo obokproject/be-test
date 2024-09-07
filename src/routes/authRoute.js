@@ -23,6 +23,8 @@ module.exports = (pool) => {
   //mypage수정했을때
   router.delete("/profile-image", authController.deleteImage);
   router.put("/update", authController.updateUser);
+  //mypage 활동내역
+  router.get("/auth/room-history", authController.getUserRoomHistory);
 
   return router;
 };

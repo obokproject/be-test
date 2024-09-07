@@ -262,7 +262,6 @@ io.on("connection", (socket) => {
   // RoomInfo를 위한 새로운 이벤트 핸들러
 
   socket.on("getRoomInfo", async (uuid) => {
-    console.log("> getRoomInfo");
     try {
       const room = await db.Room.findOne({
         where: { uuid },
