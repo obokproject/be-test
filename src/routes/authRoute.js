@@ -5,8 +5,8 @@ module.exports = (pool) => {
   const router = express.Router();
   const authController = require("../controllers/authController")(pool);
 
-  // /auth/healthCehck
-  router.get("/healthCehck", (req, res) => {
+  // /api/auth/healthCheck
+  router.get("/healthCheck", (req, res) => {
     res.status(200).send("Success!");
   });
 

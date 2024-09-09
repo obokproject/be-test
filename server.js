@@ -10,9 +10,10 @@ const server = http.createServer(app); // 기존 Express 앱을 사용하여 HTT
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.LOCALHOST, // CORS 설정 (프론트엔드 URL)
+    origin: process.env.REACT_APP_API_URL, // CORS 설정 (프론트엔드 URL)
     methods: ["GET", "POST"],
   },
+  path: "/api",
 });
 
 // 키워드 추출 함수
