@@ -13,7 +13,6 @@ const io = new Server(server, {
     origin: process.env.REACT_APP_API_URL, // CORS 설정 (프론트엔드 URL)
     methods: ["GET", "POST"],
   },
-  path: "/api",
 });
 
 // 키워드 추출 함수
