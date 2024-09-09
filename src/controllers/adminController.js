@@ -39,27 +39,36 @@ module.exports = {
       res.status(500).json({ message: "서버 오류가 발생했습니다." });
     }
   },
+
   getMonthlySignups: async (req, res) => {
+    const year = parseInt(req.params.year);
+
     try {
       const monthlySignups = await User.findAll({
         attributes: [
-          [
-            Sequelize.fn("date_trunc", "month", Sequelize.col("createdAt")),
-            "month",
-          ],
-          [Sequelize.fn("count", Sequelize.col("id")), "count"],
+          [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "month"],
+          [Sequelize.fn("COUNT", Sequelize.col("id")), "count"],
         ],
-        group: [
-          Sequelize.fn("date_trunc", "month", Sequelize.col("createdAt")),
-        ],
-        order: [
-          [
-            Sequelize.fn("date_trunc", "month", Sequelize.col("createdAt")),
-            "ASC",
-          ],
-        ],
+        where: Sequelize.where(
+          Sequelize.fn("YEAR", Sequelize.col("createdAt")),
+          year
+        ),
+        group: [Sequelize.fn("MONTH", Sequelize.col("createdAt"))],
+        order: [[Sequelize.fn("MONTH", Sequelize.col("createdAt")), "ASC"]],
       });
-      res.json(monthlySignups);
+
+      // 모든 월에 대해 데이터 생성 (가입자가 없는 월도 포함)
+      const formattedSignups = Array.from({ length: 12 }, (_, i) => ({
+        month: i + 1,
+        count: 0,
+      }));
+      monthlySignups.forEach((signup) => {
+        formattedSignups[signup.dataValues.month - 1].count = parseInt(
+          signup.dataValues.count
+        );
+      });
+
+      res.json(formattedSignups);
     } catch (error) {
       console.error("월별 가입자 통계 조회 중 오류 발생:", error);
       res.status(500).json({ message: "서버 오류가 발생했습니다." });
