@@ -32,7 +32,7 @@ db.sequelize
 // 미들웨어 설정
 app.use(
   cors({
-    origin: process.env.LOCALHOST, // 프론트엔드 URL
+    origin: process.env.REACT_APP_API_URL, // 프론트엔드 URL
     credentials: true,
   })
 );
@@ -61,18 +61,18 @@ require("./passports/google.strategy")(pool);
 
 // 라우트 설정
 const authRoutes = require("./routes/authRoute")(pool);
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 // 새롭게 추가된 chatRoute
 const chatRoutes = require("./routes/chatRoute"); // chatRoute 불러오기
-app.use("/chat", chatRoutes); // '/chat' 경로 하위의 라우트를 chatRoutes에서 처리
+app.use("/api/chat", chatRoutes); // '/chat' 경로 하위의 라우트를 chatRoutes에서 처리
 
 const roomRoutes = require("./routes/roomRoute");
-app.use("/main", roomRoutes);
+app.use("/api/main", roomRoutes);
 
 // admin페이지
 const adminRoute = require("./routes/adminRoute");
-app.use("/admin", adminRoute);
+app.use("/api/admin", adminRoute);
 
 // 마이페이지 요청
 
