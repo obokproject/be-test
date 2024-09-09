@@ -13,6 +13,6 @@ router.get("/users", adminController.getAllUsers);
 router.delete("/users/:id", adminController.deleteUser);
 
 // 월별 가입자 통계
-router.get("/monthly-signups", adminController.getMonthlySignups);
+router.get("/monthly-signups/:year", adminController.getMonthlySignups);
 
 module.exports = router;

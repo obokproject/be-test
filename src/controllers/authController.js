@@ -228,8 +228,7 @@ module.exports = (pool) => ({
             attributes: ["title", "type", "max_member", "createdAt"],
             include: [
               {
-                model: User,
-                as: "users",
+                model: Member,
                 attributes: ["id"],
               },
             ],
@@ -242,7 +241,7 @@ module.exports = (pool) => ({
       const formattedHistory = roomHistory.map((member) => ({
         title: member.Room.title,
         type: member.Room.type,
-        participants: member.Room.users.length,
+        participants: member.Room.Members.length,
         date: member.Room.createdAt.toISOString().split("T")[0],
         entryTime: member.createdAt.toISOString().split("T")[1].substr(0, 5),
       }));
