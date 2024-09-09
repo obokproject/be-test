@@ -1,4 +1,4 @@
-const { User, Room, Member, Sequelize } = require("../models");
+const { User, Member, Room } = require("../models");
 const { Op } = require("sequelize");
 
 const firstPart = [
@@ -218,7 +218,7 @@ module.exports = (pool) => ({
   //MyPage-room 활동 내역
   getUserRoomHistory: async (req, res) => {
     try {
-      const userId = req.user.id; // 인증된 사용자의 ID
+      const userId = req.user?.id; // 인증된 사용자의 ID
 
       const roomHistory = await Member.findAll({
         where: { user_id: userId },
@@ -229,7 +229,7 @@ module.exports = (pool) => ({
             include: [
               {
                 model: User,
-                as: "Members",
+                as: "users",
                 attributes: ["id"],
               },
             ],
@@ -237,14 +237,16 @@ module.exports = (pool) => ({
         ],
         order: [[Room, "createdAt", "DESC"]],
       });
+
       // 조회된 데이터를 프론트엔드에 적합한 형식으로 가공
       const formattedHistory = roomHistory.map((member) => ({
         title: member.Room.title,
         type: member.Room.type,
-        participants: member.Room.Members.length,
+        participants: member.Room.users.length,
         date: member.Room.createdAt.toISOString().split("T")[0],
         entryTime: member.createdAt.toISOString().split("T")[1].substr(0, 5),
       }));
+
       // 가공된 데이터를 JSON 형식으로 응답
       res.json(formattedHistory);
     } catch (error) {
