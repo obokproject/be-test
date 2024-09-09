@@ -23,6 +23,118 @@ function extractKeywords(content) {
   return keywords;
 }
 
+//26-128줄
+// 칸반 보드 데이터를 데이터베이스에서 가져오는 함수
+async function fetchBoardData(roomId) {
+  const room = await db.Room.findOne({ where: { uuid: roomId } });
+  if (!room) throw new Error("Room not found");
+
+  const kanbans = await db.Kanban.findAll({
+    where: { room_id: room.id },
+    include: [
+      {
+        model: db.Content,
+        include: [{ model: db.User, attributes: ["id", "profile_image"] }],
+      },
+    ],
+    order: [[db.Content, "createdAt", "ASC"]],
+  });
+
+  const sections = [
+    { id: "생성", title: "생성", cards: [] },
+    { id: "고민", title: "고민", cards: [] },
+    { id: "채택", title: "채택", cards: [] },
+  ];
+
+  for (const kanban of kanbans) {
+    const section = sections.find((s) => s.id === kanban.section);
+    if (section && kanban.Contents && kanban.Contents.length > 0) {
+      kanban.Contents.forEach((content) => {
+        section.cards.push({
+          id: content.id,
+          content: content.content,
+          profile: content.User.profile_image,
+          userId: content.User.id,
+          createdAt: content.createdAt,
+        });
+      });
+    }
+  }
+
+  return sections;
+}
+
+// 칸반 보드 데이터를 데이터베이스에 업데이트하는 함수
+async function updateBoardData(roomId, sections, userId) {
+  const room = await db.Room.findOne({ where: { uuid: roomId } });
+  if (!room) throw new Error("Room not found");
+
+  // 호스트 권한 체크
+  const member = await db.Member.findOne({
+    where: { room_id: room.id, user_id: userId, role: "host" },
+  });
+  if (!member) throw new Error("Only host can move cards");
+
+  // 섹션 및 카드 순서 업데이트
+  for (const section of sections) {
+    for (const [index, card] of section.cards.entries()) {
+      await db.Kanban.update(
+        { section: section.id, order: index },
+        { where: { id: card.id, room_id: room.id } }
+      );
+    }
+  }
+
+  return await fetchBoardData(roomId);
+}
+
+// 새 카드를 데이터베이스에 추가하는 함수
+async function addCardToDatabase(roomId, sectionId, card) {
+  const room = await db.Room.findOne({ where: { uuid: roomId } });
+  if (!room) throw new Error("Room not found");
+
+  const user = await db.User.findByPk(card.userId);
+  if (!user) throw new Error("User not found");
+
+  // 1인당 2개 카드 제한 확인
+  const userCardCount = await db.Kanban.count({
+    where: { room_id: room.id, user_id: user.id, section: "생성" },
+  });
+  if (userCardCount > 2) {
+    throw new Error(
+      "생성 섹션에는 1인당 최대 2개의 카드만 추가할 수 있습니다."
+    );
+  }
+
+  // 생성 섹션 7개 카드 제한 확인
+  const sectionCardCount = await db.Kanban.count({
+    where: { room_id: room.id, section: "생성" },
+  });
+  if (sectionCardCount > 7) {
+    throw new Error("생성 섹션에는 최대 7개의 카드만 추가할 수 있습니다.");
+  }
+
+  // 카드 내용 길이 제한
+  if (card.content.length > 10) {
+    throw new Error("카드 내용은 최대 10글자까지 입력 가능합니다.");
+  }
+  // 칸반 및 컨텐츠 생성
+  const kanban = await db.Kanban.create({
+    room_id: room.id,
+    user_id: user.id,
+    section: sectionId,
+  });
+
+  await db.Content.create({
+    room_id: room.id,
+    kanban_id: kanban.id,
+    user_id: user.id,
+    content: card.content,
+  });
+
+  return await fetchBoardData(roomId);
+}
+
 // socket.io 연결 처리
 io.on("connection", (socket) => {
   console.log("A new client connected!");
@@ -81,15 +193,6 @@ io.on("connection", (socket) => {
         // 논리적으로 삭제된 멤버가 있다면 복원
         await existingMember.restore();
         console.log(`Restored member: userId ${userId} in roomId ${intRoomId}`);
-
-        // 현재 호스트가 있는지 확인
-        // const currentHost = await db.Member.findOne({
-        //   where: {
-        //     room_id: intRoomId,
-        //     role: "host",
-        //     user_id: { [db.Sequelize.Op.ne]: userId }, // 자기 자신을 제외
-        //   },
-        // });
       } else {
         // 방에 첫 번째로 들어오는 사용자라면 host로 지정
         if (updatedMembers.length === 0) {
@@ -166,6 +269,10 @@ io.on("connection", (socket) => {
         "previousKeywords",
         previousKeywords.map((k) => k.keyword)
       );
+
+      // 칸반 보드 데이터 가져오기 및 전송
+      const boardData = await fetchBoardData(roomId);
+      socket.emit("previousBoardData", boardData);
     } catch (error) {
       console.error("Error adding member to room:", error);
     }
@@ -242,21 +349,49 @@ io.on("connection", (socket) => {
     }
   });
 
+  // 칸반 보드 업데이트 처리
   socket.on("boardUpdate", async ({ roomId, sections }) => {
-    // 데이터베이스에 업데이트된 칸반 보드 데이터 저장
-    await updateBoardData(roomId, sections);
+    try {
+      // 데이터베이스에 업데이트된 칸반 보드 데이터 저장
+      const updatedSections = await updateBoardData(roomId, sections);
 
-    // 같은 방의 다른 클라이언트들에게 업데이트 전송
-    io.to(roomId).emit("boardUpdate", sections);
+      const room = await db.Room.findOne({ where: { uuid: roomId } });
+      if (!room) throw new Error("Room not found");
+
+      // 각 섹션과 카드의 위치를 데이터베이스에 업데이트
+      for (const section of sections) {
+        for (const [index, card] of section.cards.entries()) {
+          await db.Kanban.update(
+            { section: section.id, order: index },
+            { where: { id: card.id, room_id: room.id } }
+          );
+        }
+      }
+
+      // 같은 방의 다른 클라이언트들에게 업데이트 전송
+      io.to(roomId).emit("boardUpdate", updatedSections);
+      console.log("Board update sent to clients in room:", roomId);
+    } catch (error) {
+      console.error("Error updating board:", error);
+      socket.emit("error", "Failed to update board");
+    }
   });
 
   socket.on("addCard", async ({ roomId, sectionId, card }) => {
-    // 데이터베이스에 새 카드 추가
-    await addCardToDatabase(roomId, sectionId, card);
+    try {
+      // 데이터베이스에 새 카드 추가
+      const updatedSections = await addCardToDatabase(roomId, sectionId, card);
 
-    // 같은 방의 다른 클라이언트들에게 업데이트 전송
-    const updatedSections = await fetchPreviousBoardData(roomId);
-    io.to(roomId).emit("boardUpdate", updatedSections);
+      // 같은 방의 다른 클라이언트들에게 업데이트 전송
+      io.to(roomId).emit("boardUpdate", updatedSections);
+      console.log(
+        "New card added and board update sent to clients in room:",
+        roomId
+      );
+    } catch (error) {
+      console.error("Error adding card:", error);
+      socket.emit("error", error.message);
+    }
   });
 
   // RoomInfo를 위한 새로운 이벤트 핸들러
