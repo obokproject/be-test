@@ -5,6 +5,11 @@ module.exports = (pool) => {
   const router = express.Router();
   const authController = require("../controllers/authController")(pool);
 
+  // /auth/healthCehck
+  router.get("/healthCehck", (req, res) => {
+    res.status(200).send("Success!");
+  });
+
   router.get(
     "/google",
     passport.authenticate("google", { scope: ["email", "profile"] })

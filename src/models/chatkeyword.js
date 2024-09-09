@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       keyword: {
         type: DataTypes.STRING(20),
-        unique: true,
+        allowNull: false,
       },
     },
     {
