@@ -160,6 +160,7 @@ module.exports = (pool) => ({
     return newUser;
   },
 
+  // 사용자 정보 업데이트 함수
   updateUser: async (req, res) => {
     try {
       const { id, nickname, job, profile_image } = req.body;
@@ -198,7 +199,7 @@ module.exports = (pool) => ({
   // 프로필 이미지 삭제 함수
   deleteImage: async (req, res) => {
     try {
-      const { userId } = req.body;
+      const userId = req.user?.id;
 
       const user = await User.findByPk(userId);
       if (!user) {
