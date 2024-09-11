@@ -433,16 +433,11 @@ io.on("connection", (socket) => {
       const roomInfo = {
         title: room.title,
         user_id: room.user_id,
-        creator: {
-          name: room.User.nickname,
-          job: room.User.job,
-          profile_image: room.User.profile_image,
-        },
         member: room.get("memberCount"),
         maxMember: room.max_member,
         keywords: room.Keywords.map((k) => k.keyword),
         duration: room.duration,
-        createAt: room.createAt,
+        createdAt: room.createdAt,
         type: room.type,
       };
 
