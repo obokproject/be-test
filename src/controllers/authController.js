@@ -140,6 +140,11 @@ module.exports = (pool) => ({
         res.status(404).json({ error: "User not found after retrying" });
       }
     };
+
+    if (req.user) {
+      checkUser();
+    } else {
+    }
   },
 
   getUserById: async (id) => {
