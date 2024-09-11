@@ -144,6 +144,7 @@ module.exports = (pool) => ({
     if (req.user) {
       checkUser();
     } else {
+      res.status(401).json({ error: "Not authenticated" });
     }
   },
 
