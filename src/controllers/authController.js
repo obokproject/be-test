@@ -117,25 +117,43 @@ module.exports = (pool) => ({
     });
   },
 
-  getUser: (req, res) => {
-    console.time("Get user info"); //이거
+  getUser: async (req, res) => {
+    // 최대 대기 시간 설정 (5초 동안 최대 5번 확인)
+    const maxRetries = 5;
+    let retryCount = 0;
+    const retryInterval = 1000; // 1초 간격으로 재시도
+
+    const checkUser = async () => {
+      const [rows] = await pool.query("SELECT * FROM user WHERE id = ?", [
+        req.user?.id,
+      ]);
+
+      if (rows && rows.length > 0) {
+        console.log("User found:", rows[0]);
+        res.json(rows[0]); // 사용자 정보를 응답
+      } else if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying... Attempt ${retryCount}`);
+        setTimeout(checkUser, retryInterval); // 1초 후에 다시 시도
+      } else {
+        // 최대 재시도 횟수를 넘기면 타임아웃 응답
+        res.status(404).json({ error: "User not found after retrying" });
+      }
+    };
+
     if (req.user) {
-      res.json(req.user);
-    } // else {
-    //   res.status(401).json({ error: "Not authenticated" });
-    // }
-    console.timeEnd("Get user info"); //이거
+      checkUser();
+    } else {
+      res.status(401).json({ error: "Not authenticated" });
+    }
   },
 
   getUserById: async (id) => {
-    console.time("Get user by ID from DB"); //이거
     const [rows] = await pool.query("SELECT * FROM user WHERE id = ?", [id]);
-    console.timeEnd("Get user by ID from DB"); //이거
     return rows[0] || null;
   },
 
   findOrCreateUser: async (profile) => {
-    console.time("Find or create user"); //이거
     // 1. social_id로 사용자를 찾습니다.
     const user = await User.findOne({
       where: { social_id: profile.id },
@@ -143,9 +161,7 @@ module.exports = (pool) => ({
 
     // 2. 사용자가 이미 있으면 그 사용자를 반환합니다.
     if (user) {
-      console.log("User found:", user); //이거
       await user.update({ last_login_at: new Date() });
-      console.timeEnd("Find or create user"); //이거
       return user;
     }
 
@@ -164,7 +180,6 @@ module.exports = (pool) => ({
 
     // 4. 새로 생성된 사용자를 반환합니다.
     await newUser.update({ last_login_at: new Date() });
-    console.timeEnd("Find or create user"); //이거
     return newUser;
   },
 
