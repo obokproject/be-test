@@ -177,6 +177,7 @@ module.exports = (pool) => ({
           nickname,
           id: { [Op.ne]: id }, // 현재 사용자 ID는 제외
         },
+        paranoid: false, // 소프트 삭제된 사용자도 포함
       });
       if (existingUser) {
         return res.status(400).json({ message: "Nickname already exists" });
@@ -192,26 +193,6 @@ module.exports = (pool) => ({
       res.status(200).json({ message: "User updated successfully", user });
     } catch (error) {
       console.error("Error updating user:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  // 프로필 이미지 삭제 함수
-  deleteImage: async (req, res) => {
-    try {
-      const userId = req.user?.id;
-
-      const user = await User.findByPk(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // 프로필 이미지 필드를 null로 설정
-      await user.update({ profile_image: null });
-
-      res.status(200).json({ message: "Profile image deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting profile image:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   },
@@ -240,13 +221,16 @@ module.exports = (pool) => ({
             attributes: ["id", "title", "type", "createdAt"],
             include: [
               {
-                model: Member,
+                model: Member, // Room에 속한 Member들을 포함해서 조회
                 attributes: ["id"],
+                paranoid: false, // 소프트 삭제된 멤버들도 조회
               },
             ],
           },
         ],
-        order: [[Room, "createdAt", "DESC"]],
+        order: [["createdAt", "DESC"]],
+        limit: 10, // 최대 10개의 결과만 가져옴
+        paranoid: false, // 소프트 삭제된 Member도 포함해서 조회
       });
       console.log("Member.findAll 쿼리 완료");
       console.log("roomHistory 길이:", roomHistory.length);

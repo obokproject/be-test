@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
       },
       profile_image: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.TEXT,
       },
       role: {
         type: DataTypes.ENUM("user", "admin"),
