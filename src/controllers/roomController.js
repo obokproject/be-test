@@ -54,41 +54,6 @@ exports.getRooms = async (req, res) => {
   }
 };
 
-exports.createRoom = async (req, res) => {
-  try {
-    const { title, type, max_member, duration, uuid, keywords } = req.body;
-
-    const room = await Room.create({
-      uuid,
-      user_id: req.user.id,
-      title,
-      type,
-      max_member,
-      duration,
-      status: "active",
-    });
-
-    if (keywords && Array.isArray(keywords)) {
-      for (const keyword of keywords) {
-        await Keyword.create({
-          room_id: room.id,
-          keyword,
-        });
-      }
-    }
-
-    const roomWithKeywords = {
-      ...room.toJSON(),
-      keywords,
-    };
-
-    res.status(201).json(roomWithKeywords);
-  } catch (error) {
-    console.error("Error creating room:", error);
-    res.status(500).json({ message: "Failed to create room" });
-  }
-};
-
 // 여기부터 칸반보드 관련
 
 // 방 생성 함수 수정
@@ -115,14 +80,16 @@ exports.createRoom = async (req, res) => {
       }
     }
 
-    // 초기 칸반 보드 섹션 생성
-    const sections = ["생성", "고민", "채택"];
-    for (const section of sections) {
-      await Kanban.create({
-        room_id: room.id,
-        user_id: req.user.id,
-        section: section,
-      });
+    if (type === "kanban") {
+      // 초기 칸반 보드 섹션 생성
+      const sections = ["생성", "고민", "채택"];
+      for (const section of sections) {
+        await Kanban.create({
+          room_id: room.id,
+          user_id: req.user.id,
+          section: section,
+        });
+      }
     }
 
     const roomWithKeywords = {
