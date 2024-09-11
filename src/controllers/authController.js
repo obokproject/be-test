@@ -140,12 +140,6 @@ module.exports = (pool) => ({
         res.status(404).json({ error: "User not found after retrying" });
       }
     };
-
-    if (req.user) {
-      checkUser();
-    } else {
-      res.status(401).json({ error: "Not authenticated" });
-    }
   },
 
   getUserById: async (id) => {
