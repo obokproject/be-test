@@ -15,7 +15,7 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   waitForConnections: true, //모든 연결이 사용 중일 때 새 연결 요청을 대기열에 넣도
-  connectionLimit: 10, //풀에서 관리할 최대 연결 수를 설정
+  connectionLimit: 20, //풀에서 관리할 최대 연결 수를 설정
   queueLimit: 0, //대기열의 최대 길이를 설정합니다 (0은 무제한)
 });
 
