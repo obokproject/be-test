@@ -26,7 +26,6 @@ module.exports = (pool) => {
   router.get("/user", authController.getUser);
 
   //mypage수정했을때
-  router.delete("/profile-image", authController.deleteImage);
   router.put("/update", authController.updateUser);
   //mypage 활동내역
   router.get("/room-history", authController.getUserRoomHistory);
