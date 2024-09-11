@@ -90,50 +90,6 @@ exports.createRoom = async (req, res) => {
 };
 
 // 여기부터 칸반보드 관련
-// 칸반 보드 데이터 조회
-exports.getBoardData = async (req, res) => {
-  try {
-    const { roomId } = req.params;
-    const room = await Room.findOne({ where: { uuid: roomId } });
-    if (!room) {
-      return res.status(404).json({ message: "Room not found" });
-    }
-
-    const kanbans = await Kanban.findAll({
-      where: { room_id: room.id },
-      include: [
-        {
-          model: Content,
-          include: [{ model: User, attributes: ["id", "profile_image"] }],
-        },
-      ],
-      order: [[Content, "createdAt", "ASC"]],
-    });
-
-    const sections = [
-      { id: "생성", title: "생성", cards: [] },
-      { id: "고민", title: "고민", cards: [] },
-      { id: "채택", title: "채택", cards: [] },
-    ];
-
-    for (const kanban of kanbans) {
-      const section = sections.find((s) => s.id === kanban.section);
-      if (section) {
-        section.cards.push({
-          id: kanban.id,
-          content: kanban.Content.content,
-          profile: kanban.Content.User.profile_image,
-          userId: kanban.Content.User.id,
-        });
-      }
-    }
-
-    res.status(200).json(sections);
-  } catch (error) {
-    console.error("Error fetching board data:", error);
-    res.status(500).json({ message: "Failed to fetch board data" });
-  }
-};
 
 // 방 생성 함수 수정
 exports.createRoom = async (req, res) => {
@@ -246,11 +202,6 @@ exports.getRoomInfo = async (req, res) => {
       max_member: room.max_member,
       duration: room.duration,
       status: room.status,
-      creator: {
-        name: room.User.nickname,
-        job: room.User.job,
-        profile_image: room.User.profile_image,
-      },
       memberCount: room.get("memberCount"),
       keywords: room.Keywords.map((k) => k.keyword),
       kanbanBoard: sections,
@@ -260,5 +211,79 @@ exports.getRoomInfo = async (req, res) => {
   } catch (error) {
     console.error("Error fetching room info:", error);
     res.status(500).json({ message: "Failed to fetch room info" });
+  }
+};
+
+//칸반보드 카드추가할때
+exports.addCard = async (req, res) => {
+  try {
+    const { roomId, sectionId, content } = req.body;
+    const userId = req.user.id;
+
+    const room = await Room.findOne({ where: { uuid: roomId } });
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    const newCard = await Kanban.create({
+      room_id: room.id,
+      user_id: userId,
+      section: sectionId,
+    });
+
+    const newContent = await Content.create({
+      kanban_id: newCard.id,
+      user_id: userId,
+      content: content,
+    });
+
+    const user = await User.findByPk(userId);
+
+    res.status(201).json({
+      id: newCard.id,
+      content: newContent.content,
+      profile: user.profile_image,
+      userId: userId,
+    });
+  } catch (error) {
+    console.error("Error adding card:", error);
+    res.status(500).json({ message: "Failed to add card" });
+  }
+};
+
+//칸반보드 카드 이동할때
+
+exports.moveCard = async (req, res) => {
+  try {
+    const { roomId, cardId, newSectionId } = req.body;
+    const userId = req.user.id;
+
+    const room = await Room.findOne({ where: { uuid: roomId } });
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    // 호스트 확인
+    const isHost = await Member.findOne({
+      where: { room_id: room.id, user_id: userId, role: "host" },
+    });
+
+    if (!isHost) {
+      return res.status(403).json({ message: "Only host can move cards" });
+    }
+
+    const updatedCard = await Kanban.update(
+      { section: newSectionId },
+      { where: { id: cardId, room_id: room.id } }
+    );
+
+    if (updatedCard[0] === 0) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
+    res.status(200).json({ message: "Card moved successfully" });
+  } catch (error) {
+    console.error("Error moving card:", error);
+    res.status(500).json({ message: "Failed to move card" });
   }
 };

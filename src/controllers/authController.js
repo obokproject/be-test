@@ -219,14 +219,25 @@ module.exports = (pool) => ({
   //MyPage-room 활동 내역
   getUserRoomHistory: async (req, res) => {
     try {
+      console.log("getUserRoomHistory 함수 시작");
       const userId = req.user?.id; // 인증된 사용자의 ID
 
+      console.log("User ID:", userId);
+
+      if (!userId) {
+        console.log("사용자 인증 실패");
+        return res
+          .status(401)
+          .json({ message: "Unauthorized: User not authenticated" });
+      }
+
+      console.log("Member.findAll 쿼리 시작");
       const roomHistory = await Member.findAll({
         where: { user_id: userId },
         include: [
           {
             model: Room,
-            attributes: ["title", "type", "max_member", "createdAt"],
+            attributes: ["id", "title", "type", "createdAt"],
             include: [
               {
                 model: Member,
@@ -237,18 +248,27 @@ module.exports = (pool) => ({
         ],
         order: [[Room, "createdAt", "DESC"]],
       });
+      console.log("Member.findAll 쿼리 완료");
+      console.log("roomHistory 길이:", roomHistory.length);
 
       // 조회된 데이터를 프론트엔드에 적합한 형식으로 가공
-      const formattedHistory = roomHistory.map((member) => ({
-        title: member.Room.title,
-        type: member.Room.type,
-        participants: member.Room.Members.length,
-        date: member.Room.createdAt.toISOString().split("T")[0],
-        entryTime: member.createdAt.toISOString().split("T")[1].substr(0, 5),
-      }));
+      console.log("데이터 가공 시작");
+      const formattedHistory = roomHistory.map((member) => {
+        console.log("Room 정보:", member.Room);
+        return {
+          title: member.Room.title,
+          type: member.Room.type === "chat" ? "베리톡" : "베리보드",
+          participants: member.Room.Members.length,
+          date: member.Room.createdAt.toISOString().split("T")[0],
+          entryTime: member.createdAt.toISOString().split("T")[1].substr(0, 5),
+        };
+      });
+      console.log("데이터 가공 완료");
+      console.log("formattedHistory 길이:", formattedHistory.length);
 
       // 가공된 데이터를 JSON 형식으로 응답
       res.json(formattedHistory);
+      console.log("응답 전송 완료");
     } catch (error) {
       console.error("Error fetching user room history:", error);
       res.status(500).json({ message: "Internal server error" });
