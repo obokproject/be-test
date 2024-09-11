@@ -118,19 +118,24 @@ module.exports = (pool) => ({
   },
 
   getUser: (req, res) => {
+    console.time("Get user info"); //이거
     if (req.user) {
       res.json(req.user);
     } // else {
     //   res.status(401).json({ error: "Not authenticated" });
     // }
+    console.timeEnd("Get user info"); //이거
   },
 
   getUserById: async (id) => {
+    console.time("Get user by ID from DB"); //이거
     const [rows] = await pool.query("SELECT * FROM user WHERE id = ?", [id]);
+    console.timeEnd("Get user by ID from DB"); //이거
     return rows[0] || null;
   },
 
   findOrCreateUser: async (profile) => {
+    console.time("Find or create user"); //이거
     // 1. social_id로 사용자를 찾습니다.
     const user = await User.findOne({
       where: { social_id: profile.id },
@@ -138,7 +143,9 @@ module.exports = (pool) => ({
 
     // 2. 사용자가 이미 있으면 그 사용자를 반환합니다.
     if (user) {
+      console.log("User found:", user); //이거
       await user.update({ last_login_at: new Date() });
+      console.timeEnd("Find or create user"); //이거
       return user;
     }
 
@@ -157,6 +164,7 @@ module.exports = (pool) => ({
 
     // 4. 새로 생성된 사용자를 반환합니다.
     await newUser.update({ last_login_at: new Date() });
+    console.timeEnd("Find or create user"); //이거
     return newUser;
   },
 
