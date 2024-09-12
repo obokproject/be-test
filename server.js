@@ -23,7 +23,6 @@ function extractKeywords(content) {
   return keywords;
 }
 
-//26-128줄
 // 칸반 보드 데이터를 데이터베이스에서 가져오는 함수
 async function fetchBoardData(roomId) {
   const room = await db.Room.findOne({ where: { uuid: roomId } });
@@ -96,28 +95,31 @@ async function addCardToDatabase(roomId, sectionId, card) {
   const user = await db.User.findByPk(card.userId);
   if (!user) throw new Error("User not found");
 
-  // 1인당 2개 카드 제한 확인
-  const userCardCount = await db.Kanban.count({
+  // 생성 섹션의 카드 수 확인
+  const creationSectionCardCount = await db.Kanban.count({
+    where: { room_id: room.id, section: "생성" },
+  });
+
+  if (creationSectionCardCount >= 7) {
+    throw new Error("생성 섹션에는 최대 7개의 카드만 추가할 수 있습니다.");
+  }
+
+  // 사용자의 생성 섹션 카드 수 확인
+  const userCreationCardCount = await db.Kanban.count({
     where: { room_id: room.id, user_id: user.id, section: "생성" },
   });
-  if (userCardCount > 2) {
+
+  if (userCreationCardCount >= 2) {
     throw new Error(
       "생성 섹션에는 1인당 최대 2개의 카드만 추가할 수 있습니다."
     );
-  }
-
-  // 생성 섹션 7개 카드 제한 확인
-  const sectionCardCount = await db.Kanban.count({
-    where: { room_id: room.id, section: "생성" },
-  });
-  if (sectionCardCount > 7) {
-    throw new Error("생성 섹션에는 최대 7개의 카드만 추가할 수 있습니다.");
   }
 
   // 카드 내용 길이 제한
   if (card.content.length > 10) {
     throw new Error("카드 내용은 최대 10글자까지 입력 가능합니다.");
   }
+
   // 칸반 및 컨텐츠 생성
   const kanban = await db.Kanban.create({
     room_id: room.id,
@@ -152,16 +154,15 @@ io.on("connection", (socket) => {
       // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) {
-        throw new Error("Room not found22222");
+        throw new Error("Room not found");
       }
 
       const intRoomId = room.id;
       const realRoom = {
         id: room.id,
-        title: room.title, // room 테이블의 다른 필드들 추가
-        userId: room.user_id, // room의 생성자 정보 (예시)
-        createdAt: room.createdAt, // 생성 시간 (예시)
-        // 필요한 다른 필드들도 추가 가능
+        title: room.title,
+        userId: room.user_id,
+        createdAt: room.createdAt,
       };
 
       // 클라이언트로 realRoom 정보를 전송
@@ -174,12 +175,12 @@ io.on("connection", (socket) => {
         order: [["createdAt", "ASC"]],
         include: [
           {
-            model: db.User, // User 모델과 조인
-            attributes: ["nickname", "job", "profile_image"], // 필요한 속성만 선택
+            model: db.User,
+            attributes: ["nickname", "job", "profile_image"],
           },
         ],
       });
-      console.log("Updated Members:", updatedMembers); // 멤버 리스트를 로그로 출력하여 확인
+      console.log("Updated Members:", updatedMembers);
 
       // 논리적으로 삭제된 멤버가 있는지 확인 (복원할 멤버가 있는지 확인)
       let existingMember = await db.Member.findOne({
@@ -231,7 +232,7 @@ io.on("connection", (socket) => {
           job: member.User ? member.User.job : "Unknown",
           profile: member.User
             ? member.User.profile_image
-            : "default-profile.png",
+            : "/images/user-profile.png",
           role: member.role,
         }))
       );
@@ -244,8 +245,8 @@ io.on("connection", (socket) => {
         where: { room_id: intRoomId },
         include: [
           {
-            model: db.User, // User 모델과 조인하여 사용자 정보 가져오기
-            attributes: ["nickname", "job", "profile_image"], // 필요한 속성만 선택
+            model: db.User,
+            attributes: ["nickname", "job", "profile_image"],
           },
         ],
       });
@@ -259,9 +260,11 @@ io.on("connection", (socket) => {
         previousMessages.map((msg) => ({
           content: msg.content,
           user_id: msg.user_id,
-          profile: msg.User ? msg.User.profile_image : "default-profile.png", // 프로필 정보
-          nickname: msg.User ? msg.User.nickname : "Unknown", // 닉네임 정보
-          job: msg.User ? msg.User.job : "Unknown", // 직업 정보
+          profile: msg.User
+            ? msg.User.profile_image
+            : "/images/user-profile.png",
+          nickname: msg.User ? msg.User.nickname : "Unknown",
+          job: msg.User ? msg.User.job : "Unknown",
         }))
       );
 
@@ -287,16 +290,15 @@ io.on("connection", (socket) => {
       // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) {
-        console.log("asdfasdfasdfasdf");
-        throw new Error("Room not found3333333333");
+        throw new Error("Room not found");
       }
       // 키워드 추출
       const keywords = extractKeywords(content);
-      console.log("Extracted Keywords:", keywords); // 키워드가 제대로 추출되는지 확인
+      console.log("Extracted Keywords:", keywords);
 
       // 메시지를 DB에 저장
       const savedMessage = await db.Chat.create({
-        room_id: room.id, // INT 타입의 room_id
+        room_id: room.id,
         user_id: userId,
         content: content,
       });
@@ -311,9 +313,9 @@ io.on("connection", (socket) => {
         } catch (error) {
           if (error.name === "SequelizeUniqueConstraintError") {
             console.log(`Keyword ${keyword} already exists, skipping...`);
-            continue; // 중복된 키워드가 있으면 건너뛰기
+            continue;
           } else {
-            throw error; // 다른 에러가 있으면 예외 처리
+            throw error;
           }
         }
       }
@@ -323,14 +325,13 @@ io.on("connection", (socket) => {
       if (!user) {
         throw new Error("User not found");
       }
-
       // 사용자의 정보를 포함한 메시지 생성
       const messageWithUserInfo = {
         content: savedMessage.content,
         user_id: savedMessage.user_id,
-        profile: user.profile_image, // user에서 프로필 정보 가져오기
-        nickname: user.nickname, // user에서 닉네임 정보 가져오기
-        job: user.job, // user에서 직업 정보 가져오기
+        profile: user.profile_image,
+        nickname: user.nickname,
+        job: user.job,
       };
 
       // 같은 방에 있는 다른 클라이언트들에게 메시지 전송
@@ -367,7 +368,6 @@ io.on("connection", (socket) => {
           );
         }
       }
-
       // 같은 방의 다른 클라이언트들에게 업데이트 전송
       io.to(roomId).emit("boardUpdate", updatedSections);
       console.log("Board update sent to clients in room:", roomId);
@@ -376,7 +376,6 @@ io.on("connection", (socket) => {
       socket.emit("error", "Failed to update board");
     }
   });
-
   socket.on("addCard", async ({ roomId, sectionId, card }) => {
     try {
       // 데이터베이스에 새 카드 추가
@@ -395,7 +394,6 @@ io.on("connection", (socket) => {
   });
 
   // RoomInfo를 위한 새로운 이벤트 핸들러
-
   socket.on("getRoomInfo", async (uuid) => {
     try {
       const room = await db.Room.findOne({
@@ -440,7 +438,6 @@ io.on("connection", (socket) => {
         createdAt: room.createdAt,
         type: room.type,
       };
-
       socket.emit("roomInfo", roomInfo);
     } catch (error) {
       console.error("Error fetching room:", error);
@@ -462,11 +459,9 @@ io.on("connection", (socket) => {
       // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) {
-        console.log("aaaaaaaaaaaaaaa");
-        throw new Error("Room not found444444444");
+        throw new Error("Room not found");
       }
       const intRoomId = room.id; // 정수형 room_id
-
       // 멤버 테이블에서 제거
       await db.Member.destroy({
         where: {
@@ -487,7 +482,6 @@ io.on("connection", (socket) => {
           { model: db.User, attributes: ["nickname", "job", "profile_image"] },
         ],
       });
-
       io.to(roomId).emit(
         "memberUpdate",
         updatedMembers.map((member) => ({
@@ -496,7 +490,7 @@ io.on("connection", (socket) => {
           job: member.User ? member.User.job : "Unknown",
           profile: member.User
             ? member.User.profile_image
-            : "default-profile.png",
+            : "/images/user-profile.png",
           role: member.role,
         }))
       );
@@ -508,7 +502,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
