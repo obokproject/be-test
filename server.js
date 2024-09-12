@@ -63,30 +63,7 @@ async function fetchBoardData(roomId) {
   return sections;
 }
 
-// 칸반 보드 데이터를 데이터베이스에 업데이트하는 함수
-async function updateBoardData(roomId, sections, userId) {
-  const room = await db.Room.findOne({ where: { uuid: roomId } });
-  if (!room) throw new Error("Room not found");
-
-  // 호스트 권한 체크
-  const member = await db.Member.findOne({
-    where: { room_id: room.id, user_id: userId, role: "host" },
-  });
-  if (!member) throw new Error("Only host can move cards");
-
-  // 섹션 및 카드 순서 업데이트
-  for (const section of sections) {
-    for (const [index, card] of section.cards.entries()) {
-      await db.Kanban.update(
-        { section: section.id, order: index },
-        { where: { id: card.id, room_id: room.id } }
-      );
-    }
-  }
-
-  return await fetchBoardData(roomId);
-}
-
+// TODO 삭제할것
 // 새 카드를 데이터베이스에 추가하는 함수
 async function addCardToDatabase(roomId, sectionId, card) {
   const room = await db.Room.findOne({ where: { uuid: roomId } });
@@ -100,7 +77,7 @@ async function addCardToDatabase(roomId, sectionId, card) {
     where: { room_id: room.id, section: "생성" },
   });
 
-  if (creationSectionCardCount >= 7) {
+  if (creationSectionCardCount >= 17) {
     throw new Error("생성 섹션에는 최대 7개의 카드만 추가할 수 있습니다.");
   }
 
@@ -109,7 +86,7 @@ async function addCardToDatabase(roomId, sectionId, card) {
     where: { room_id: room.id, user_id: user.id, section: "생성" },
   });
 
-  if (userCreationCardCount >= 2) {
+  if (userCreationCardCount >= 5) {
     throw new Error(
       "생성 섹션에는 1인당 최대 2개의 카드만 추가할 수 있습니다."
     );
@@ -351,45 +328,46 @@ io.on("connection", (socket) => {
   });
 
   // 칸반 보드 업데이트 처리
-  socket.on("boardUpdate", async ({ roomId, sections }) => {
+  socket.on("boardUpdate", async ({ roomId, sections, movedCard }) => {
     try {
-      // 데이터베이스에 업데이트된 칸반 보드 데이터 저장
-      const updatedSections = await updateBoardData(roomId, sections);
-
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) throw new Error("Room not found");
 
-      // 각 섹션과 카드의 위치를 데이터베이스에 업데이트
-      for (const section of sections) {
-        for (const [index, card] of section.cards.entries()) {
-          await db.Kanban.update(
-            { section: section.id, order: index },
-            { where: { id: card.id, room_id: room.id } }
-          );
+      // movedCard 정보가 있다면 Kanban과 Content 테이블 업데이트
+      if (movedCard) {
+        // 새로운 섹션의 Kanban 레코드 찾기 또는 생성
+        let newKanban = await db.Kanban.findOne({
+          where: {
+            room_id: room.id,
+            section: movedCard.newSectionId,
+            user_id: socket.userId,
+          },
+        });
+
+        if (!newKanban) {
+          newKanban = await db.Kanban.update({
+            room_id: room.id,
+            section: movedCard.newSectionId,
+            user_id: socket.userId,
+          });
         }
+
+        // Content 테이블의 kanban_id 업데이트
+        await db.Content.update(
+          { kanban_id: newKanban.id },
+          { where: { id: movedCard.id } }
+        );
       }
+
+      // 업데이트된 보드 데이터 가져오기
+      const updatedSections = await fetchBoardData(roomId);
+
       // 같은 방의 다른 클라이언트들에게 업데이트 전송
       io.to(roomId).emit("boardUpdate", updatedSections);
       console.log("Board update sent to clients in room:", roomId);
     } catch (error) {
       console.error("Error updating board:", error);
       socket.emit("error", "Failed to update board");
-    }
-  });
-  socket.on("addCard", async ({ roomId, sectionId, card }) => {
-    try {
-      // 데이터베이스에 새 카드 추가
-      const updatedSections = await addCardToDatabase(roomId, sectionId, card);
-
-      // 같은 방의 다른 클라이언트들에게 업데이트 전송
-      io.to(roomId).emit("boardUpdate", updatedSections);
-      console.log(
-        "New card added and board update sent to clients in room:",
-        roomId
-      );
-    } catch (error) {
-      console.error("Error adding card:", error);
-      socket.emit("error", error.message);
     }
   });
 
@@ -439,6 +417,23 @@ io.on("connection", (socket) => {
         type: room.type,
       };
       socket.emit("roomInfo", roomInfo);
+    } catch (error) {
+      console.error("Error fetching room:", error);
+      socket.emit("roomError", { message: "Failed to fetch room" });
+    }
+  });
+
+  socket.on("addCard", async ({ roomId, sectionId, card }) => {
+    try {
+      await addCardToDatabase(roomId, sectionId, card);
+
+      // 업데이트된 보드 데이터 가져오기
+      const updatedSections = await fetchBoardData(roomId);
+
+      // 같은 방의 다른 클라이언트들에게 업데이트 전송
+      io.to(roomId).emit("boardUpdate", updatedSections);
+
+      // socket.emit("roomInfo", roomInfo);
     } catch (error) {
       console.error("Error fetching room:", error);
       socket.emit("roomError", { message: "Failed to fetch room" });
