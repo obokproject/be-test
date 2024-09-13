@@ -39,6 +39,10 @@ module.exports = (sequelize, DataTypes) => {
   Chat.associate = (models) => {
     Chat.belongsTo(models.Room, { foreignKey: "room_id" });
     Chat.belongsTo(models.User, { foreignKey: "user_id" });
+    Chat.hasMany(models.Chatkeyword, {
+      foreignKey: "chat_id",
+      onDelete: "CASCADE",
+    });
   };
 
   return Chat;
