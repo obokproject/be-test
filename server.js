@@ -307,6 +307,7 @@ io.on("connection", (socket) => {
       }
       // 사용자의 정보를 포함한 메시지 생성
       const messageWithUserInfo = {
+        id: savedMessage.id, // 'id' 추가
         content: savedMessage.content,
         user_id: savedMessage.user_id,
         profile: user.profile_image,
