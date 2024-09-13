@@ -23,7 +23,12 @@ module.exports = (sequelize, DataTypes) => {
     {
       tableName: "chatkeyword",
       timestamps: true,
-      paranoid: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ["room_id", "keyword"], // 복합 고유 제약 조건 설정
+        },
+      ],
     }
   );
 
