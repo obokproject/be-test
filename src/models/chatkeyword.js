@@ -15,6 +15,15 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
+      chat_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false, // chat_id는 필수로 추가
+        references: {
+          model: "chat", // chat 테이블과 연결
+          key: "id",
+        },
+        onDelete: "CASCADE",
+      },
       keyword: {
         type: DataTypes.STRING(20),
         allowNull: false,
@@ -26,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       indexes: [
         {
           unique: true,
-          fields: ["room_id", "keyword"], // 복합 고유 제약 조건 설정
+          fields: ["room_id", "keyword"], // 복합 고유 제약 조건
         },
       ],
     }
@@ -34,6 +43,7 @@ module.exports = (sequelize, DataTypes) => {
 
   Chatkeyword.associate = (models) => {
     Chatkeyword.belongsTo(models.Room, { foreignKey: "room_id" });
+    Chatkeyword.belongsTo(models.Chat, { foreignKey: "chat_id" }); // chat과 관계 설정
   };
 
   return Chatkeyword;

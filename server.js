@@ -229,6 +229,7 @@ io.on("connection", (socket) => {
       });
       const previousKeywords = await db.Chatkeyword.findAll({
         where: { room_id: intRoomId },
+        order: [["createdAt", "DESC"]], // 역순으로 정렬
       });
 
       // 클라이언트로 이전 메시지와 키워드를 전송
@@ -269,9 +270,6 @@ io.on("connection", (socket) => {
       if (!room) {
         throw new Error("Room not found");
       }
-      // 키워드 추출
-      const keywords = extractKeywords(content);
-      console.log("Extracted Keywords:", keywords);
 
       // 메시지를 DB에 저장
       const savedMessage = await db.Chat.create({
@@ -280,11 +278,16 @@ io.on("connection", (socket) => {
         content: content,
       });
 
+      // 키워드 추출
+      const keywords = extractKeywords(content);
+      console.log("Extracted Keywords:", keywords);
+
       // 중복되지 않은 키워드만 ChatKeyword 테이블에 저장
       for (const keyword of keywords) {
         try {
           await db.Chatkeyword.create({
             room_id: room.id,
+            chat_id: savedMessage.id,
             keyword: keyword,
           });
         } catch (error) {
@@ -324,6 +327,73 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.error("Error processing message:", error);
       socket.emit("error", "Failed to process message");
+    }
+  });
+
+  // 클라이언트가 키워드를 클릭했을 때 해당 메시지를 찾아서 반환
+  socket.on("keywordClick", async ({ roomId, keyword }, callback) => {
+    try {
+      const room = await db.Room.findOne({ where: { uuid: roomId } });
+      if (!room) {
+        throw new Error("Room not found");
+      }
+
+      // 해당 키워드에 연결된 채팅 메시지를 찾음
+      const chatKeyword = await db.Chatkeyword.findOne({
+        where: { room_id: room.id, keyword: keyword },
+        include: [{ model: db.Chat }],
+      });
+
+      if (chatKeyword && chatKeyword.Chat) {
+        // 키워드에 연결된 채팅 메시지를 클라이언트로 반환
+        const chatMessage = {
+          id: chatKeyword.Chat.id,
+          content: chatKeyword.Chat.content,
+          createdAt: chatKeyword.Chat.createdAt,
+        };
+        callback({ success: true, message: chatMessage });
+      } else {
+        callback({ success: false, error: "Keyword or message not found" });
+      }
+    } catch (error) {
+      console.error("Error finding message for keyword:", error);
+      callback({ success: false, error: "Failed to find message" });
+    }
+  });
+
+  // 키워드 삭제 이벤트 처리
+  socket.on("deleteKeyword", async ({ roomId, keyword, userId }, callback) => {
+    try {
+      // roomId(UUID)를 사용하여 방을 찾고 room의 int ID를 가져옴
+      const room = await db.Room.findOne({ where: { uuid: roomId } });
+      if (!room) {
+        throw new Error("Room not found");
+      }
+
+      // 해당 방과 키워드에 일치하는 레코드 삭제
+      const result = await db.Chatkeyword.destroy({
+        where: {
+          room_id: room.id,
+          keyword: keyword,
+        },
+      });
+
+      if (result) {
+        console.log(`Keyword "${keyword}" deleted from room "${roomId}"`);
+        callback({ success: true });
+
+        // 키워드 삭제 후 업데이트된 키워드 목록을 모든 클라이언트에게 전송
+        const updatedKeywords = await db.Chatkeyword.findAll({
+          where: { room_id: room.id },
+        });
+        const keywordList = updatedKeywords.map((k) => k.keyword);
+        io.to(roomId).emit("keywordUpdate", keywordList);
+      } else {
+        throw new Error("Failed to delete keyword");
+      }
+    } catch (error) {
+      console.error("Error deleting keyword:", error);
+      callback({ success: false, error: "Failed to delete keyword" });
     }
   });
 
