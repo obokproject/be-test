@@ -72,36 +72,12 @@ async function addCardToDatabase(roomId, sectionId, card) {
   const user = await db.User.findByPk(card.userId);
   if (!user) throw new Error("User not found");
 
-  // 생성 섹션의 카드 수 확인
-  const creationSectionCardCount = await db.Kanban.count({
-    where: { room_id: room.id, section: "생성" },
-  });
-
-  if (creationSectionCardCount >= 17) {
-    throw new Error("생성 섹션에는 최대 7개의 카드만 추가할 수 있습니다.");
-  }
-
-  // 사용자의 생성 섹션 카드 수 확인
-  const userCreationCardCount = await db.Kanban.count({
-    where: { room_id: room.id, user_id: user.id, section: "생성" },
-  });
-
-  if (userCreationCardCount >= 5) {
-    throw new Error(
-      "생성 섹션에는 1인당 최대 2개의 카드만 추가할 수 있습니다."
-    );
-  }
-
-  // 카드 내용 길이 제한
-  if (card.content.length > 10) {
-    throw new Error("카드 내용은 최대 10글자까지 입력 가능합니다.");
-  }
-
   // 칸반 및 컨텐츠 생성
-  const kanban = await db.Kanban.create({
-    room_id: room.id,
-    user_id: user.id,
-    section: sectionId,
+  const kanban = await db.Kanban.findOne({
+    where: {
+      room_id: room.id,
+      section: sectionId,
+    },
   });
 
   await db.Content.create({

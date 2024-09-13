@@ -2,6 +2,8 @@
 
 "Razvery"는 실시간으로 아이디어를 공유하는 서비스입니다. 제한 시간이 있는 채팅과 포스트잇 보드 형태가 핵심 기능입니다.
 <br>
+관리자 백오피스 구축으로 직관적인 대시보드로 핵심 지표 실시간 모니터링이 가능하여 사용자 관리가 용이합니다.
+<br>
 
 ## 팀 소개
 
@@ -18,32 +20,35 @@
 
 ## 기술 스택 및 라이브러리
 
-- Express.js
-- MySQL
+- Express.js <img src="https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express&logoColor=white">
+- MySQL <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
 
 ## AWS 배포
 
-url:<br>
+url: [Razvery 🍓](https://razvery.link/)<br>
 
 ```mermaid
 graph LR
-    A[GitHub] --> B[Action/PM2]
-    C[My SQL] --> B
-    B --> D[Amazon S3 Bucket]
-    B --> E[EC2]
-    B --> F[Amazon RDS]
-    G[Amazon CloudWatch]
-
-    subgraph AWS Cloud
-        B
-        D
-        E
-        F
-        G
-    end
+    User((사용자)) --> Route53[Route 53]
+    Route53 --> CloudFront[CloudFront]
+    CloudFront --> ALB[ALB]
+    ALB --> EC2[EC2 Nginx+PM2]
+    EC2 --> S3[(S3 Bucket)]
+    ACM[ACM] --> CloudFront
+    ACM --> ALB
+    GitHub[GitHub] --> |Actions| S3
+    GitHub --> |Actions| EC2
+    GitHub --> |Actions| RDS[(Amazon RDS)]
+    MySQL[(MySQL)] --> |Migration| RDS
+    CloudWatch[Amazon CloudWatch] --> |Monitoring| CloudFront
+    CloudWatch --> |Monitoring| ALB
+    CloudWatch --> |Monitoring| EC2
+    CloudWatch --> |Monitoring| S3
+    CloudWatch --> |Monitoring| RDS
 ```
 
 GitHub에서 Action/PM2로 코드 푸시 및 배포<br>
+CloudFront는 ACM의 SSL 인증서를 사용해 HTTPS 연결을 제공<br>
 MySQL에서 Action/PM2를 통해 데이터 마이그레이션<br>
 Action/PM2에서 프론트엔드 파일을 S3 Bucket으로 배포<br>
 Action/PM2에서 백엔드 코드를 EC2로 배포<br>
@@ -194,6 +199,7 @@ server/
 | KanbanBoard | /kanban/:roomId | 베리 보드(포스트잇) 페이지                 | - 작업 항목 관리<br>- 드래그 앤 드롭      |
 | MyPage      | /mypage         | 사용자 개인 정보 및 설정 페이지            | - 프로필 수정<br>- 활동 내역 확인         |
 | AboutPage   | /about          | 서비스 소개 및 정보 페이지                 | - 서비스 소개                             |
+| AdminPage   | /admin          | 회원관리 및 월별 가입자 통계               | - 서비스 소개                             |
 
 <br>
 
@@ -222,6 +228,11 @@ classDiagram
         +int duration
         +enum status
     }
+    class Keyword {
+        +int id
+        +int room_id
+        +string keyword
+    }
     class Chat {
         +int id
         +int room_id
@@ -233,23 +244,18 @@ classDiagram
         +int room_id
         +string keyword
     }
-    class Content {
-        +int id
-        +int room_id
-        +int kanban_id
-        +int user_id
-        +string content
-    }
     class Kanban {
         +int id
         +int room_id
         +int user_id
         +string section
     }
-    class Keyword {
+    class Content {
         +int id
         +int room_id
-        +string keyword
+        +int kanban_id
+        +int user_id
+        +string content
     }
     class Member {
         +int id
@@ -351,83 +357,11 @@ erDiagram
 
 <br>
 
-## 시퀀스 다이어그램
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Frontend
-    participant AuthController
-    participant RoomController
-    participant ChatController
-    participant KanbanController
-    participant Database
-    participant WebSocket
-
-    User->>Frontend: 로그인 요청
-    Frontend->>AuthController: 소셜 로그인 요청
-    AuthController->>Database: 사용자 정보 확인/생성
-    Database-->>AuthController: 사용자 정보 반환
-    AuthController-->>Frontend: JWT 토큰 반환
-    Frontend-->>User: 로그인 성공
-
-    User->>Frontend: 메인 페이지 접속
-    Frontend->>RoomController: 방 목록 요청
-    RoomController->>Database: 방 목록 조회
-    Database-->>RoomController: 방 목록 반환
-    RoomController-->>Frontend: 방 목록 전송
-    Frontend-->>User: 방 목록 표시
-
-    User->>Frontend: 방 생성 요청
-    Frontend->>RoomController: 방 생성 요청
-    RoomController->>Database: 방 정보 저장
-    Database-->>RoomController: 저장 결과 반환
-    RoomController-->>Frontend: 방 생성 결과 반환
-    Frontend-->>User: 방 생성 결과 표시
-
-    User->>Frontend: 방 입장
-    Frontend->>WebSocket: 방 입장 이벤트 발생
-    WebSocket->>ChatController: 사용자 입장 처리
-    ChatController->>Database: 멤버 정보 저장
-    Database-->>ChatController: 저장 결과 반환
-    ChatController-->>WebSocket: 입장 알림 브로드캐스트
-    WebSocket-->>Frontend: 입장 알림 수신
-    Frontend-->>User: 채팅방 UI 표시
-
-    User->>Frontend: 채팅 메시지 전송
-    Frontend->>WebSocket: 메시지 전송 이벤트 발생
-    WebSocket->>ChatController: 메시지 처리
-    ChatController->>Database: 메시지 저장
-    Database-->>ChatController: 저장 결과 반환
-    ChatController-->>WebSocket: 메시지 브로드캐스트
-    WebSocket-->>Frontend: 새 메시지 수신
-    Frontend-->>User: 새 메시지 표시
-
-    User->>Frontend: 칸반 보드 카드 이동
-    Frontend->>WebSocket: 카드 이동 이벤트 발생
-    WebSocket->>KanbanController: 카드 이동 처리
-    KanbanController->>Database: 카드 위치 업데이트
-    Database-->>KanbanController: 업데이트 결과 반환
-    KanbanController-->>WebSocket: 카드 이동 브로드캐스트
-    WebSocket-->>Frontend: 카드 이동 정보 수신
-    Frontend-->>User: 칸반 보드 UI 업데이트
-
-    User->>Frontend: 방 나가기
-    Frontend->>WebSocket: 방 나가기 이벤트 발생
-    WebSocket->>ChatController: 사용자 퇴장 처리
-    ChatController->>Database: 멤버 정보 업데이트
-    Database-->>ChatController: 업데이트 결과 반환
-    ChatController-->>WebSocket: 퇴장 알림 브로드캐스트
-    WebSocket-->>Frontend: 퇴장 알림 수신
-    Frontend-->>User: 메인 페이지로 리다이렉트
-```
-
-<br>
-
 ## 트러블 슈팅
 
 - 실시간 양방향 통신: Socket.io를 사용한 실시간 업데이트 구현
 - 보안 HTTPS 적용하고 싶었으나 SSL인증서를 발급받지 못했지만 Route53을 시도해 보았음
+
   <br>
 
 ## 회고
@@ -435,3 +369,4 @@ sequenceDiagram
 <br>
 <br>
 <br>
+````
