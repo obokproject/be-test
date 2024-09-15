@@ -392,11 +392,19 @@ io.on("connection", (socket) => {
         });
 
         if (!newKanban) {
-          newKanban = await db.Kanban.update({
-            room_id: room.id,
-            section: movedCard.newSectionId,
-            user_id: socket.userId,
-          });
+          newKanban = await db.Kanban.update(
+            {
+              room_id: room.id,
+              section: movedCard.newSectionId,
+              user_id: socket.userId,
+            },
+            {
+              where: {
+                id: kanbanId,
+              },
+              returning: true,
+            }
+          );
         }
 
         // Content 테이블의 kanban_id 업데이트
