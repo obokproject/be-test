@@ -133,12 +133,17 @@ io.on("connection", (socket) => {
           },
         ],
       });
-      console.log("Updated Members:", updatedMembers);
 
       // 논리적으로 삭제된 멤버가 있는지 확인 (복원할 멤버가 있는지 확인)
       let existingMember = await db.Member.findOne({
         where: { room_id: intRoomId, user_id: userId },
         paranoid: false, // 논리적으로 삭제된 레코드도 조회
+      });
+
+      // 호스트가 이미 있는지 확인
+      const existingHost = await db.Member.findOne({
+        where: { room_id: intRoomId, role: "host" }, // 이미 호스트로 설정된 멤버가 있는지 확인
+        paranoid: false, // 논리적으로 삭제된 멤버도 포함
       });
 
       let role = "guest"; // 기본 role을 'guest'로 설정
@@ -149,7 +154,7 @@ io.on("connection", (socket) => {
         console.log(`Restored member: userId ${userId} in roomId ${intRoomId}`);
       } else {
         // 방에 첫 번째로 들어오는 사용자라면 host로 지정
-        if (updatedMembers.length === 0) {
+        if (!existingHost) {
           role = "host";
         }
 
@@ -205,13 +210,14 @@ io.on("connection", (socket) => {
       });
       const previousKeywords = await db.Chatkeyword.findAll({
         where: { room_id: intRoomId },
-        order: [["createdAt", "DESC"]], // 역순으로 정렬
+        order: [["createdAt"]], // 역순으로 정렬
       });
 
       // 클라이언트로 이전 메시지와 키워드를 전송
       socket.emit(
         "previousMessages",
         previousMessages.map((msg) => ({
+          id: msg.id,
           content: msg.content,
           user_id: msg.user_id,
           profile: msg.User
@@ -237,7 +243,6 @@ io.on("connection", (socket) => {
 
   // 메시지 수신 처리
   socket.on("message", async (message) => {
-    console.log("Received message from client:", message);
     const { roomId, userId, content } = message;
 
     try {
@@ -253,6 +258,20 @@ io.on("connection", (socket) => {
         user_id: userId,
         content: content,
       });
+
+      // 시스템 메시지일 경우 처리
+      if (userId === 99999) {
+        // 시스템 메시지를 방에 있는 모든 클라이언트에게 전송
+        io.to(roomId).emit("message", {
+          id: savedMessage.id,
+          user_id: userId,
+          content: content,
+          profile: null, // 시스템 메시지이므로 프로필 없음
+          nickname: "System", // 시스템 메시지
+          job: "System", // 시스템 메시지
+        });
+        return; // 시스템 메시지는 사용자 정보가 필요 없으므로 여기서 종료
+      }
 
       // 키워드 추출
       const keywords = extractKeywords(content);
@@ -293,8 +312,6 @@ io.on("connection", (socket) => {
 
       // 같은 방에 있는 다른 클라이언트들에게 메시지 전송
       io.to(roomId).emit("message", messageWithUserInfo);
-      console.log("Message sent to clients in room:", roomId);
-      console.log(messageWithUserInfo);
 
       // 키워드가 있을 경우 해당 방의 모든 클라이언트에게 키워드 전송
       if (keywords.length > 0) {
