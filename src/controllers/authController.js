@@ -129,7 +129,6 @@ module.exports = (pool) => ({
       ]);
 
       if (rows && rows.length > 0) {
-        console.log("User found:", rows[0]);
         res.json(rows[0]); // 사용자 정보를 응답
       } else if (retryCount < maxRetries) {
         retryCount++;
