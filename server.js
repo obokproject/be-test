@@ -512,6 +512,38 @@ io.on("connection", (socket) => {
     }
   });
 
+  // 방이 종료될 때 처리하는 로직
+  socket.on("roomClosed", async ({ roomId }) => {
+    try {
+      const room = await db.Room.findOne({ where: { uuid: roomId } });
+      if (!room) {
+        throw new Error("Room not found");
+      }
+
+      // 방의 상태를 'closed'로 업데이트
+      await room.update({ status: "closed" });
+
+      // 방에 있는 클라이언트들에게 방이 종료되었다고 알림
+      io.to(roomId).emit("serverRoomClosed", {
+        message: "방이 종료되었습니다. 더 이상 방에 참여할 수 없습니다.",
+      });
+
+      // 1초 후에 모든 클라이언트의 소켓 연결을 끊기
+      setTimeout(() => {
+        io.in(roomId).disconnectSockets(true);
+        console.log(
+          `Room ${roomId} has been closed and all sockets disconnected.`
+        );
+      }, 1000); // 1초 기다린 후 소켓을 끊음
+
+      console.log(
+        `Room ${roomId} has been closed and all sockets disconnected.`
+      );
+    } catch (error) {
+      console.error("Error closing room:", error);
+    }
+  });
+
   // 사용자가 방에서 나갈 때 처리
   socket.on("disconnect", async () => {
     const roomId = socket.roomId; // 저장된 roomId 가져오기
@@ -563,6 +595,30 @@ io.on("connection", (socket) => {
       );
       // roominfo에 보냄
       io.to(roomId).emit("roomUpdated");
+
+      // 방에 남은 인원이 있는지 확인
+      const clientsInRoom = io.sockets.adapter.rooms.get(roomId);
+
+      // 3초 후에도 방에 남은 인원이 없는지 확인하고 방을 닫음
+      if (!clientsInRoom || clientsInRoom.size === 0) {
+        setTimeout(async () => {
+          const clientsInRoomAfterTimeout =
+            io.sockets.adapter.rooms.get(roomId);
+
+          if (
+            !clientsInRoomAfterTimeout ||
+            clientsInRoomAfterTimeout.size === 0
+          ) {
+            await db.Room.update(
+              { status: "closed" },
+              { where: { uuid: roomId } }
+            );
+            console.log(
+              `Room ${roomId} closed after 3 seconds and no users left.`
+            );
+          }
+        }, 3000); // 3초 대기 후 다시 확인
+      }
     } catch (error) {
       console.error("Error leaving room:", error);
       socket.emit("error", "Failed to leave room");
