@@ -37,8 +37,8 @@ app.use(
   })
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" })); // JSON 본문 크기 제한을 50MB로 설정
+app.use(express.urlencoded({ extended: true, limit: "50mb" })); // URL-encoded 본문 크기 제한을 50MB로 설정
 
 app.use(
   session({

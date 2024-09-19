@@ -1,3 +1,5 @@
+const { Op } = require("sequelize"); // Sequelize에서 Op를 가져옴
+
 const {
   Room,
   Keyword,
@@ -12,7 +14,11 @@ const {
 exports.getRooms = async (req, res) => {
   try {
     const rooms = await Room.findAll({
-      where: { status: "active" },
+      where: {
+        status: {
+          [Op.or]: ["active", "open"], // status가 "active" 또는 "open"일 때
+        },
+      },
       include: [
         {
           model: Keyword,

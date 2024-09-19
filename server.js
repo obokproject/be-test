@@ -116,6 +116,7 @@ io.on("connection", (socket) => {
         title: room.title,
         userId: room.user_id,
         createdAt: room.createdAt,
+        status: room.status,
       };
 
       // 클라이언트로 realRoom 정보를 전송
@@ -455,7 +456,7 @@ io.on("connection", (socket) => {
           },
           {
             model: db.User,
-            attributes: ["nickname", "job", "profile_image"],
+            attributes: ["id", "nickname", "job", "profile_image"],
           },
           {
             model: db.Member,
@@ -487,6 +488,10 @@ io.on("connection", (socket) => {
         duration: room.duration,
         createdAt: room.createdAt,
         type: room.type,
+        status: room.status,
+        hostNickname: room.User.nickname, // 호스트의 닉네임
+        hostJob: room.User.job, // 호스트의 직업
+        hostProfileImage: room.User.profile_image, // 호스트의 프로필 이미지
       };
       socket.emit("roomInfo", roomInfo);
     } catch (error) {
@@ -514,6 +519,7 @@ io.on("connection", (socket) => {
 
   // 방이 종료될 때 처리하는 로직
   socket.on("roomClosed", async ({ roomId }) => {
+    console.log(`받았다, ${roomId}`);
     try {
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) {
@@ -529,16 +535,16 @@ io.on("connection", (socket) => {
       });
 
       // 1초 후에 모든 클라이언트의 소켓 연결을 끊기
-      setTimeout(() => {
-        io.in(roomId).disconnectSockets(true);
-        console.log(
-          `Room ${roomId} has been closed and all sockets disconnected.`
-        );
-      }, 1000); // 1초 기다린 후 소켓을 끊음
+      // setTimeout(() => {
+      //   io.in(roomId).disconnectSockets(true);
+      //   console.log(
+      //     `Room ${roomId} has been closed and all sockets disconnected.`
+      //   );
+      // }, 1000); // 1초 기다린 후 소켓을 끊음
 
-      console.log(
-        `Room ${roomId} has been closed and all sockets disconnected.`
-      );
+      // console.log(
+      //   `Room ${roomId} has been closed and all sockets disconnected.`
+      // );
     } catch (error) {
       console.error("Error closing room:", error);
     }
@@ -570,9 +576,6 @@ io.on("connection", (socket) => {
       });
 
       console.log(`Member removed: userId ${userId} from roomId ${intRoomId}`);
-
-      // 클라이언트에게 업데이트된 멤버 정보 전송
-      io.to(roomId).emit("memberUpdate", { userId, action: "left" });
 
       // 멤버 정보를 다시 클라이언트로 전송하여 갱신된 멤버 리스트를 보냄
       const updatedMembers = await db.Member.findAll({
@@ -609,13 +612,18 @@ io.on("connection", (socket) => {
             !clientsInRoomAfterTimeout ||
             clientsInRoomAfterTimeout.size === 0
           ) {
-            await db.Room.update(
-              { status: "closed" },
-              { where: { uuid: roomId } }
-            );
-            console.log(
-              `Room ${roomId} closed after 3 seconds and no users left.`
-            );
+            // 방의 상태가 "open"이 아닌 경우에만 방을 닫음
+            const room = await db.Room.findOne({ where: { uuid: roomId } });
+
+            if (room && room.status !== "open") {
+              await db.Room.update(
+                { status: "closed" },
+                { where: { uuid: roomId } }
+              );
+              console.log(
+                `Room ${roomId} closed after 3 seconds and no users left.`
+              );
+            }
           }
         }, 3000); // 3초 대기 후 다시 확인
       }
