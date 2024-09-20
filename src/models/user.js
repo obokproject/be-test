@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
       },
       profile_image: {
-        type: DataTypes.TEXT,
+        type: DataTypes.TEXT("medium"), // MEDIUMTEXT로 변경
       },
       role: {
         type: DataTypes.ENUM("user", "admin"),
