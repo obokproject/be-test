@@ -148,41 +148,16 @@ section 마무리
 
 ```bash
 server/
+├── github/ # GitHub 관련 설정. CI/CD 워크플로우
 ├── src/
-│   ├── config/
-│   │   └── config.js
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── roomController.js
-│   │   └── chatController.js
-│   ├── middlewares/
-│   │   └── index.js
-│   ├── models/
-│   │   ├── index.js
-│   │   ├── chat.js
-│   │   ├── content.js
-│   │   ├── kanban.js
-│   │   ├── keyword.js
-│   │   ├── member.js
-│   │   ├── chatkeyword.js
-│   │   ├── room.js
-│   │   └── user.js
-│   ├── routes/
-│   │   ├── authRoute.js
-│   │   ├── roomRoute.js
-│   │   └── chatRoute.js
-│   ├── passports/
-│   │   ├── index.js
-│   │   └── googleStrategy.js
-│   ├── utils/
-│   │   ├── logger.js
-│   │   └── validators.js
-│   └── app.js
-├── tests/
-│   ├── unit/
-│   └── integration/
-├── .env
-├── .gitignore
+│   ├── config/  # 애플리케이션 설정 파일
+│   ├── controllers/    # 요청 처리 및 응답 로직
+│   ├── middlewares/    # 미들웨어 함수들
+│   ├── models/     # 데이터베이스 모델 및 스키마
+│   ├── routes/     # API 라우트 정의
+│   ├── passports/  # 인증전략
+│   └── utils/      # logger, validator
+├── tests/      # 테스트 파일 (TDD를 위한)
 ├── package.json
 └── server.js
 ```
@@ -191,15 +166,15 @@ server/
 
 ## 페이지 및 URL 구조
 
-| 페이지      | URL             | 설명                                       | 주요 기능                                 |
-| ----------- | --------------- | ------------------------------------------ | ----------------------------------------- |
-| LandingPage | /               | 웹사이트의 메인 페이지, 로그인 및 입장하기 | - 서비스 소개<br>- 시작하기 버튼<br>- FAQ |
-| MainPage    | /main           | 로그인 후 메인 대시보드                    | - 사용자의 방 목록<br>- 새 방 만들기      |
-| ChatBoard   | /chat/:roomId   | 베리 톡(채팅방) 페이지                     | - 실시간 채팅<br>- 키워드 표시            |
-| KanbanBoard | /kanban/:roomId | 베리 보드(포스트잇) 페이지                 | - 작업 항목 관리<br>- 드래그 앤 드롭      |
-| MyPage      | /mypage         | 사용자 개인 정보 및 설정 페이지            | - 프로필 수정<br>- 활동 내역 확인         |
-| AboutPage   | /about          | 서비스 소개 및 정보 페이지                 | - 서비스 소개                             |
-| AdminPage   | /admin          | 회원관리 및 월별 가입자 통계               | - 서비스 소개                             |
+| 페이지      | URL             | 설명                                       | 주요 기능                                              |
+| ----------- | --------------- | ------------------------------------------ | ------------------------------------------------------ |
+| LandingPage | /               | 웹사이트의 메인 페이지, 로그인 및 입장하기 | - 서비스 소개<br>- 시작하기 버튼<br>- FAQ              |
+| MainPage    | /main           | 로그인 후 메인 대시보드                    | - 사용자의 방 목록<br>- 새 방 만들기                   |
+| ChatBoard   | /chat/:roomId   | 베리 톡(채팅방) 페이지                     | - 실시간 채팅<br>- 키워드 표시                         |
+| KanbanBoard | /kanban/:roomId | 베리 보드(포스트잇) 페이지                 | - 섹션 별 카드<br>- 드래그 앤 드롭                     |
+| MyPage      | /mypage         | 사용자 개인 정보 및 설정 페이지            | - 프로필 수정<br>- 활동 내역 확인                      |
+| AboutPage   | /about          | 서비스 소개 및 정보 페이지                 | - 서비스 소개                                          |
+| AdminPage   | /admin          | 관리자 페이지                              | - 유저 조회 및 소프트 삭제 <br>- 월별 사용자 유입 통계 |
 
 <br>
 
