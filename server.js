@@ -36,7 +36,7 @@ async function fetchBoardData(roomId) {
         include: [{ model: db.User, attributes: ["id", "profile_image"] }],
       },
     ],
-    order: [[db.Content, "createdAt", "ASC"]],
+    order: [[db.Content, "updatedAt", "ASC"]],
   });
 
   const sections = [
@@ -54,7 +54,7 @@ async function fetchBoardData(roomId) {
           content: content.content,
           profile: content.User.profile_image,
           userId: content.User.id,
-          createdAt: content.createdAt,
+          updatedAt: content.updatedAt,
         });
       });
     }
