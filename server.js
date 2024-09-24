@@ -36,7 +36,7 @@ async function fetchBoardData(roomId) {
         include: [{ model: db.User, attributes: ["id", "profile_image"] }],
       },
     ],
-    order: [[db.Content, "updatedAt", "ASC"]],
+    order: [[db.Content, "position", "ASC"]],
   });
 
   const sections = [
@@ -55,6 +55,7 @@ async function fetchBoardData(roomId) {
           profile: content.User.profile_image,
           userId: content.User.id,
           updatedAt: content.updatedAt,
+          position: content.position,
         });
       });
     }
@@ -398,38 +399,29 @@ io.on("connection", (socket) => {
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) throw new Error("Room not found");
 
-      // movedCard 정보가 있다면 Kanban과 Content 테이블 업데이트
-      if (movedCard) {
-        // 새로운 섹션의 Kanban 레코드 찾기 또는 생성
-        let newKanban = await db.Kanban.findOne({
+      // 모든 섹션에 대해 순서 업데이트
+      for (const section of sections) {
+        const kanban = await db.Kanban.findOne({
           where: {
             room_id: room.id,
-            section: movedCard.newSectionId,
-            user_id: socket.userId,
+            section: section.id,
           },
         });
 
-        if (!newKanban) {
-          newKanban = await db.Kanban.update(
+        if (!kanban) continue;
+        // 각 카드의 순서 업데이트
+        for (let i = 0; i < section.cards.length; i++) {
+          const card = section.cards[i];
+          await db.Content.update(
             {
-              room_id: room.id,
-              section: movedCard.newSectionId,
-              user_id: socket.userId,
+              kanban_id: kanban.id,
+              position: i, // 새로운 순서 저장
             },
             {
-              where: {
-                id: kanbanId,
-              },
-              returning: true,
+              where: { id: card.id },
             }
           );
         }
-
-        // Content 테이블의 kanban_id 업데이트
-        await db.Content.update(
-          { kanban_id: newKanban.id },
-          { where: { id: movedCard.id } }
-        );
       }
 
       // 업데이트된 보드 데이터 가져오기

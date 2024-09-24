@@ -36,6 +36,11 @@ module.exports = (sequelize, DataTypes) => {
       content: {
         type: DataTypes.STRING(50),
       },
+      position: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
     },
     {
       tableName: "content",
