@@ -559,6 +559,12 @@ io.on("connection", (socket) => {
         throw new Error("Room not found");
       }
       const intRoomId = room.id; // 정수형 room_id
+
+      // 나가는 사용자의 역할을 확인하기 위해 Member 테이블 조회
+      const leavingMember = await db.Member.findOne({
+        where: { room_id: intRoomId, user_id: userId },
+      });
+
       // 멤버 테이블에서 제거
       await db.Member.destroy({
         where: {
@@ -567,27 +573,48 @@ io.on("connection", (socket) => {
         },
       });
 
-      console.log(`Member removed: userId ${userId} from roomId ${intRoomId}`);
+      // 나가는 사용자가 호스트인 경우, 방을 닫음
+      if (leavingMember && leavingMember.role === "host") {
+        // 3초 후에도 호스트가 없으면 방을 닫음 (새로고침 예외 처리 가능)
+        setTimeout(async () => {
+          // 3초 후에도 여전히 호스트가 없으면 방을 닫음
+          const updatedHost = await db.Member.findOne({
+            where: { room_id: intRoomId, role: "host" },
+          });
 
-      // 멤버 정보를 다시 클라이언트로 전송하여 갱신된 멤버 리스트를 보냄
-      const updatedMembers = await db.Member.findAll({
-        where: { room_id: intRoomId },
-        include: [
-          { model: db.User, attributes: ["nickname", "job", "profile_image"] },
-        ],
-      });
-      io.to(roomId).emit(
-        "memberUpdate",
-        updatedMembers.map((member) => ({
-          userId: member.user_id,
-          nickname: member.User ? member.User.nickname : "Unknown",
-          job: member.User ? member.User.job : "Unknown",
-          profile: member.User
-            ? member.User.profile_image
-            : "/images/user-profile.png",
-          role: member.role,
-        }))
-      );
+          if (!updatedHost) {
+            // 방의 상태를 'closed'로 업데이트
+            await room.update({ status: "closed" });
+            io.to(roomId).emit("serverRoomClosed", {
+              message: "호스트가 나가서 방이 종료되었습니다.",
+            });
+            console.log(`Room ${roomId} closed as host left.`);
+          }
+        }, 3000); // 3초 지연 후 다시 확인
+      } else {
+        // 나가는 사용자가 호스트가 아닐 때는 남은 멤버 업데이트
+        const updatedMembers = await db.Member.findAll({
+          where: { room_id: intRoomId },
+          include: [
+            {
+              model: db.User,
+              attributes: ["nickname", "job", "profile_image"],
+            },
+          ],
+        });
+        io.to(roomId).emit(
+          "memberUpdate",
+          updatedMembers.map((member) => ({
+            userId: member.user_id,
+            nickname: member.User ? member.User.nickname : "Unknown",
+            job: member.User ? member.User.job : "Unknown",
+            profile: member.User
+              ? member.User.profile_image
+              : "/images/user-profile.png",
+            role: member.role,
+          }))
+        );
+      }
       // roominfo에 보냄
       io.to(roomId).emit("roomUpdated");
 
@@ -617,7 +644,7 @@ io.on("connection", (socket) => {
               );
             }
           }
-        }, 3000); // 3초 대기 후 다시 확인
+        }, 100); // 3초 대기 후 다시 확인
       }
     } catch (error) {
       console.error("Error leaving room:", error);
