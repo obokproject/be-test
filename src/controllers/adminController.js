@@ -1,5 +1,4 @@
 const { User, Sequelize } = require("../models");
-const { Op } = require("sequelize");
 
 module.exports = {
   // 모든 사용자 조회
@@ -75,28 +74,6 @@ module.exports = {
     }
   },
   getAvailableYears: async (req, res) => {
-    // try {
-    //   const firstUser = await User.findOne({
-    //     order: [["createdAt", "ASC"]],
-    //   });
-
-    //   if (!firstUser) {
-    //     return res.json([new Date().getFullYear()]);
-    //   }
-
-    //   const firstYear = firstUser.createdAt.getFullYear();
-    //   const currentYear = new Date().getFullYear();
-    //   const years = [];
-
-    //   for (let year = firstYear; year <= currentYear; year++) {
-    //     years.push(year);
-    //   }
-
-    //   res.json(years);
-    // } catch (error) {
-    //   console.error("사용 가능한 연도 조회 중 오류 발생:", error);
-    //   res.status(500).json({ message: "서버 오류가 발생했습니다." });
-    // }
     res.json([2026, 2025, 2024, 2023]);
   },
 };

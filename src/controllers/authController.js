@@ -132,7 +132,6 @@ module.exports = (pool) => ({
         res.json(rows[0]); // 사용자 정보를 응답
       } else if (retryCount < maxRetries) {
         retryCount++;
-        console.log(`Retrying... Attempt ${retryCount}`);
         setTimeout(checkUser, retryInterval); // 1초 후에 다시 시도
       } else {
         // 최대 재시도 횟수를 넘기면 타임아웃 응답
