@@ -28,7 +28,6 @@ module.exports = (pool) => {
   });
 
   passport.deserializeUser(async (id, done) => {
-    console.log("Deserializing user with ID:", id);
     try {
       const user = await authController.getUserById(id);
       done(null, user);

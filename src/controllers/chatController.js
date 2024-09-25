@@ -3,7 +3,6 @@ const db = require("../models"); // Sequelize 모델 불러오기
 // 메시지 가져오기 함수
 exports.getMessages = async (req, res) => {
   const { roomId } = req.params; // URL에서 roomId를 가져옵니다
-  console.log("Received roomId:", roomId); // roomId 로그 출력
 
   try {
     // Room UUID로 Room을 찾습니다

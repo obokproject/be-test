@@ -19,7 +19,6 @@ const io = new Server(server, {
 function extractKeywords(content) {
   const regex = /#[^\s#]+/g;
   const keywords = content.match(regex) || [];
-  console.log("Extracted Keywords:", keywords); // 추출된 키워드를 로그로 출력
   return keywords;
 }
 
@@ -93,15 +92,12 @@ async function addCardToDatabase(roomId, sectionId, card) {
 
 // socket.io 연결 처리
 io.on("connection", (socket) => {
-  console.log("A new client connected!");
-
   // 방에 참여시키기 (클라이언트가 방에 참가 요청을 할 때)
   socket.on("joinRoom", async (data) => {
     const { roomId, userId } = data;
     socket.join(roomId); // 클라이언트를 특정 방에 추가
     socket.roomId = roomId; // 소켓에 roomId 저장
     socket.userId = userId; // 소켓에 userId 저장
-    console.log(`Client joined room: ${roomId}`);
 
     // 멤버 테이블에 사용자 추가 (기본 role은 guest)
     try {
@@ -122,7 +118,6 @@ io.on("connection", (socket) => {
 
       // 클라이언트로 realRoom 정보를 전송
       socket.emit("realRoom", realRoom);
-      console.log("realroom : ", realRoom);
 
       // 기존 멤버 조회
       let updatedMembers = await db.Member.findAll({
@@ -153,7 +148,6 @@ io.on("connection", (socket) => {
       if (existingMember) {
         // 논리적으로 삭제된 멤버가 있다면 복원
         await existingMember.restore();
-        console.log(`Restored member: userId ${userId} in roomId ${intRoomId}`);
       } else {
         // 방에 첫 번째로 들어오는 사용자라면 host로 지정
         if (!existingHost) {
@@ -166,9 +160,6 @@ io.on("connection", (socket) => {
           user_id: userId,
           role: role,
         });
-        console.log(
-          `Member added: userId ${userId} as ${role} in roomId ${intRoomId}`
-        );
       }
 
       // 멤버 정보 업데이트 후 다시 가져오기
@@ -277,7 +268,6 @@ io.on("connection", (socket) => {
 
       // 키워드 추출
       const keywords = extractKeywords(content);
-      console.log("Extracted Keywords:", keywords);
 
       // 중복되지 않은 키워드만 ChatKeyword 테이블에 저장
       for (const keyword of keywords) {
@@ -318,7 +308,6 @@ io.on("connection", (socket) => {
       // 키워드가 있을 경우 해당 방의 모든 클라이언트에게 키워드 전송
       if (keywords.length > 0) {
         io.to(roomId).emit("keywordUpdate", keywords);
-        console.log("Keywords sent to clients in room:", roomId);
       }
     } catch (error) {
       console.error("Error processing message:", error);
@@ -429,7 +418,6 @@ io.on("connection", (socket) => {
 
       // 같은 방의 다른 클라이언트들에게 업데이트 전송
       io.to(roomId).emit("boardUpdate", updatedSections);
-      console.log("Board update sent to clients in room:", roomId);
     } catch (error) {
       console.error("Error updating board:", error);
       socket.emit("error", "Failed to update board");
@@ -511,7 +499,6 @@ io.on("connection", (socket) => {
 
   // 방이 종료될 때 처리하는 로직
   socket.on("roomClosed", async ({ roomId }) => {
-    console.log(`받았다, ${roomId}`);
     try {
       const room = await db.Room.findOne({ where: { uuid: roomId } });
       if (!room) {
@@ -525,18 +512,6 @@ io.on("connection", (socket) => {
       io.to(roomId).emit("serverRoomClosed", {
         message: "방이 종료되었습니다. 더 이상 방에 참여할 수 없습니다.",
       });
-
-      // 1초 후에 모든 클라이언트의 소켓 연결을 끊기
-      // setTimeout(() => {
-      //   io.in(roomId).disconnectSockets(true);
-      //   console.log(
-      //     `Room ${roomId} has been closed and all sockets disconnected.`
-      //   );
-      // }, 1000); // 1초 기다린 후 소켓을 끊음
-
-      // console.log(
-      //   `Room ${roomId} has been closed and all sockets disconnected.`
-      // );
     } catch (error) {
       console.error("Error closing room:", error);
     }
@@ -582,7 +557,7 @@ io.on("connection", (socket) => {
             where: { room_id: intRoomId, role: "host" },
           });
 
-          if (!updatedHost && room.status !== "open") {
+          if (!updatedHost) {
             // 방의 상태를 'closed'로 업데이트
             await room.update({ status: "closed" });
             io.to(roomId).emit("serverRoomClosed", {
@@ -590,30 +565,31 @@ io.on("connection", (socket) => {
             });
             console.log(`Room ${roomId} closed as host left.`);
           }
-        }, 2000); // 3초 지연 후 다시 확인
+        }, 3000); // 3초 지연 후 다시 확인
+      } else {
+        // 나가는 사용자가 호스트가 아닐 때는 남은 멤버 업데이트
+        const updatedMembers = await db.Member.findAll({
+          where: { room_id: intRoomId },
+          include: [
+            {
+              model: db.User,
+              attributes: ["nickname", "job", "profile_image"],
+            },
+          ],
+        });
+        io.to(roomId).emit(
+          "memberUpdate",
+          updatedMembers.map((member) => ({
+            userId: member.user_id,
+            nickname: member.User ? member.User.nickname : "Unknown",
+            job: member.User ? member.User.job : "Unknown",
+            profile: member.User
+              ? member.User.profile_image
+              : "/images/user-profile.png",
+            role: member.role,
+          }))
+        );
       }
-      // 나가는 사용자가 호스트가 아닐 때는 남은 멤버 업데이트
-      const updatedMembers = await db.Member.findAll({
-        where: { room_id: intRoomId },
-        include: [
-          {
-            model: db.User,
-            attributes: ["nickname", "job", "profile_image"],
-          },
-        ],
-      });
-      io.to(roomId).emit(
-        "memberUpdate",
-        updatedMembers.map((member) => ({
-          userId: member.user_id,
-          nickname: member.User ? member.User.nickname : "Unknown",
-          job: member.User ? member.User.job : "Unknown",
-          profile: member.User
-            ? member.User.profile_image
-            : "/images/user-profile.png",
-          role: member.role,
-        }))
-      );
       // roominfo에 보냄
       io.to(roomId).emit("roomUpdated");
 
