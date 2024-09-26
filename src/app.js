@@ -4,7 +4,8 @@ const passport = require("passport");
 const session = require("express-session");
 const mysql = require("mysql2/promise");
 const db = require("./models"); // Sequelize 모델 불러오기
-
+const { isLoggedIn, isAdmin } = require("./middlewares"); // 미들웨어 추가
+const { swaggerUi, swaggerSpec } = require("../swagger");
 const app = express();
 
 // MySQL 연결 설정
@@ -74,6 +75,14 @@ app.use("/api/main", roomRoutes);
 // admin페이지
 const adminRoute = require("./routes/adminRoute");
 app.use("/api/admin", adminRoute);
+
+app.use(
+  "/api/api-docs",
+  isLoggedIn,
+  isAdmin,
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+);
 
 // 마이페이지 요청
 

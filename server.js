@@ -557,7 +557,7 @@ io.on("connection", (socket) => {
             where: { room_id: intRoomId, role: "host" },
           });
 
-          if (!updatedHost) {
+          if (!updatedHost && room.status !== "open") {
             // 방의 상태를 'closed'로 업데이트
             await room.update({ status: "closed" });
             io.to(roomId).emit("serverRoomClosed", {
@@ -566,30 +566,29 @@ io.on("connection", (socket) => {
             console.log(`Room ${roomId} closed as host left.`);
           }
         }, 3000); // 3초 지연 후 다시 확인
-      } else {
-        // 나가는 사용자가 호스트가 아닐 때는 남은 멤버 업데이트
-        const updatedMembers = await db.Member.findAll({
-          where: { room_id: intRoomId },
-          include: [
-            {
-              model: db.User,
-              attributes: ["nickname", "job", "profile_image"],
-            },
-          ],
-        });
-        io.to(roomId).emit(
-          "memberUpdate",
-          updatedMembers.map((member) => ({
-            userId: member.user_id,
-            nickname: member.User ? member.User.nickname : "Unknown",
-            job: member.User ? member.User.job : "Unknown",
-            profile: member.User
-              ? member.User.profile_image
-              : "/images/user-profile.png",
-            role: member.role,
-          }))
-        );
       }
+      //방 나갈 때 남은 멤버 업데이트
+      const updatedMembers = await db.Member.findAll({
+        where: { room_id: intRoomId },
+        include: [
+          {
+            model: db.User,
+            attributes: ["nickname", "job", "profile_image"],
+          },
+        ],
+      });
+      io.to(roomId).emit(
+        "memberUpdate",
+        updatedMembers.map((member) => ({
+          userId: member.user_id,
+          nickname: member.User ? member.User.nickname : "Unknown",
+          job: member.User ? member.User.job : "Unknown",
+          profile: member.User
+            ? member.User.profile_image
+            : "/images/user-profile.png",
+          role: member.role,
+        }))
+      );
       // roominfo에 보냄
       io.to(roomId).emit("roomUpdated");
 
