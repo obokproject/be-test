@@ -3,7 +3,23 @@ const chatController = require("../controllers/chatController"); // chatControll
 
 const router = express.Router();
 
-// 메시지 가져오기 라우트 정의
+/**
+ * @swagger
+ * /api/chat/{roomId}/messages:
+ *   get:
+ *     summary: "특정 방의 메시지 가져오기"
+ *     description: "주어진 방(roomId)의 채팅 메시지를 가져오는 API"
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: "메시지를 가져올 방의 ID."
+ *     responses:
+ *       200:
+ *         description: "성공적으로 메시지를 반환함"
+ */
 router.get("/:roomId/messages", chatController.getMessages);
 
 module.exports = router; // 라우터를 모듈로 내보냅니다
