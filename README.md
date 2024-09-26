@@ -1,4 +1,4 @@
-# Razvery - 백엔드
+# Razvery - 프론트엔드
 
 "Razvery"는 실시간으로 아이디어를 공유하는 서비스입니다. <br>
 제한 시간이 있는 채팅과 포스트잇 보드 형태가 핵심 기능입니다.<br>
@@ -8,27 +8,28 @@
 ### 목차
 
 1. 프로젝트 소개
-2. [팀 소개 및 기술스택](https://github.com/obokproject/be-test?tab=readme-ov-file#팀-소개-및-기술스택)
-3. [링크](https://github.com/obokproject/be-test?tab=readme-ov-file#링크)
-4. [프로젝트 기획](https://github.com/obokproject/be-test?tab=readme-ov-file#프로젝트-기획)
-5. [시연 영상](https://github.com/obokproject/be-test?tab=readme-ov-file#시연-영상)
-6. [WBS](https://github.com/obokproject/be-test?tab=readme-ov-file#WBS)
-7. [폴더 구조](https://github.com/obokproject/be-test?tab=readme-ov-file#폴더-구조)
-8. [페이지 및 URL 구조](https://github.com/obokproject/be-test?tab=readme-ov-file#페이지-및-URL-구조)
-9. [시퀀스 다이어그램](https://github.com/obokproject/be-test?tab=readme-ov-file#시퀀스-다이어그램)
-10. [클래스 다이어그램](https://github.com/obokproject/be-test?tab=readme-ov-file#클래스-다이어그램)
-11. [ERD](https://github.com/obokproject/be-test?tab=readme-ov-file#ERD)
-12. [AWS 배포](https://github.com/obokproject/be-test?tab=readme-ov-file#AWS-배포)
-13. [트러블 슈팅](https://github.com/obokproject/be-test?tab=readme-ov-file#트러블-슈팅)
-14. [회고](https://github.com/obokproject/be-test?tab=readme-ov-file#회고)
+2. [팀 소개 및 기술스택](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#팀-소개-및-기술스택)
+3. [링크](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#링크)
+4. [프로젝트 기획](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#프로젝트-기획-목차)
+5. [시연 영상](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#시연-영상-목차)
+6. [WBS](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#WBS-목차)
+7. [폴더 구조](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#폴더-구조-목차)
+8. [페이지 및 URL 구조](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#페이지-및-URL-구조-목차)
+9. [API 문서화](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#API-문서화-목차)
+10. [시퀀스 다이어그램](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#시퀀스-다이어그램-목차)
+11. [클래스 다이어그램](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#클래스-다이어그램-목차)
+12. [ERD](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#ERD-목차)
+13. [AWS 배포](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#AWS-배포-목차)
+14. [트러블 슈팅](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#트러블-슈팅-목차)
+15. [회고](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#회고)
 
 ## 팀 소개 및 기술 스택
 
 - 기획팀: 김상윤, 윤상수
 - 개발팀: 박초롱, 변윤석
   <br>
-- 프론트엔드 : <img src="https://img.shields.io/badge/REACT-61DAFB?style=for-the-badge&logo=react&logoColor=black">- <img src="https://img.shields.io/badge/TailwindCSS-1572B6?style=for-the-badge&logo=TailwindCSS&logoColor=white"> <img src="https://img.shields.io/badge/bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white"><br>
-- 백엔드 : <img src="https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express&logoColor=white"> <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
+  <img src="https://img.shields.io/badge/REACT-61DAFB?style=for-the-badge&logo=react&logoColor=black"> <img src="https://img.shields.io/badge/TailwindCSS-1572B6?style=for-the-badge&logo=TailwindCSS&logoColor=white"> <img src="https://img.shields.io/badge/bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white"><br>
+  <img src="https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express&logoColor=white"> <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
 
 ## 링크
 
@@ -37,7 +38,7 @@
 - Backend 레포 : https://github.com/obokproject/be-test <br>
   <br>
 
-## 프로젝트 기획
+## 프로젝트 기획 [목차](#목차)
 
 - 경쟁사 분석<br>
 - 기능정의서<br>
@@ -46,7 +47,7 @@
 - [코딩 컨벤션/ 폴더구조/ GitHub 전략](https://mathdev-park.notion.site/GitHub-Flow-32f89991bd0442eca822662076da1a9c?pvs=4)
   <br>
 
-## 시연 영상
+## 시연 영상 [목차](#목차)
 
 ![video1](https://github.com/user-attachments/assets/da4bc760-0bbd-498a-9e8f-1a6e36ac02c7)
 <br>
@@ -188,6 +189,12 @@ server/
 | MyPage      | /mypage         | 사용자 개인 정보 및 설정 페이지            | - 프로필 수정<br>- 활동 내역 확인                      |
 | AboutPage   | /about          | 서비스 소개 및 정보 페이지                 | - 서비스 소개                                          |
 | AdminPage   | /admin          | 관리자 페이지                              | - 유저 조회 및 소프트 삭제 <br>- 월별 사용자 유입 통계 |
+
+<br>
+
+## API 문서화 [목차](#목차)
+
+<img src="https://github.com/user-attachments/assets/3ec3376a-247e-4b6d-bfa6-abe414aa5b23" />
 
 <br>
 
@@ -462,7 +469,7 @@ Amazon CloudWatch를 사용하여 전체 시스템 모니터링<br>
 ## 트러블 슈팅 [목차](#목차)
 
 - 실시간 양방향 통신: Socket.io를 사용한 실시간 업데이트 구현<br>
-- 채팅 키워드 기능: DB에 chatkeyword 테이블을 별도로 생성<br>
+- 채팅과 키워드 프론트엔드에서만 매핑하려다 키워드 삭제 후 재입장 시 매핑 불가: keyword 테이블에 chat_id 컬럼을 추가해 DB에서 매핑<br>
 - 포스트잇 기능: <br>
   다수의 사용자가 이동할 시에 socket안정성 문제는 호스트만 이동하는 것으로 전환<br>
   중간에 최적화 과정에서 중간에 걸치거나 하는 식으로 원하는 곳으로 이동하지 않아 이상했는데 react-beautiful-dnd 사용 문제라는 것을 알게 됨. react-dnd는 가능한데 시간이 별로 남지 않아 기획을 바꾸지 않기로 함<br>
