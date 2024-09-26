@@ -108,6 +108,6 @@ module.exports = (pool) => {
    *         description: "사용자의 방 활동 내역 반환"
    */
   router.get("/room-history", authController.getUserRoomHistory);
-  //어
+
   return router;
 };
