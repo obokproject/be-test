@@ -252,19 +252,12 @@ module.exports = (pool) => ({
       // 조회된 데이터를 프론트엔드에 적합한 형식으로 가공
 
       const formattedHistory = roomHistory.map((member) => {
-        const createdAtKST = new Date(
-          member.Room.createdAt.getTime() + 9 * 60 * 60 * 1000
-        ); // 9시간을 더해 한국 시간대로 변환
-        const entryTimeKST = new Date(
-          member.createdAt.getTime() + 9 * 60 * 60 * 1000
-        ); // 9시간을 더해 한국 시간대로 변환
-
         return {
           title: member.Room.title,
           type: member.Room.type === "chat" ? "베리톡" : "베리보드",
           participants: member.Room.Members.length,
-          date: createdAtKST.toISOString().split("T")[0], // 변환된 날짜 사용
-          entryTime: entryTimeKST.toISOString().split("T")[1].substr(0, 5), // 변환된 시간 사용
+          date: member.Room.createdAt.toISOString().split("T")[0],
+          entryTime: member.createdAt.toISOString().split("T")[1].substr(0, 5),
         };
       });
 
