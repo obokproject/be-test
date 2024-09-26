@@ -8,22 +8,22 @@
 ### 목차
 
 1. 프로젝트 소개
-2. [팀 소개 및 기술스택](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#팀-소개-및-기술스택)
-3. [링크](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#링크)
-4. [프로젝트 기획](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#프로젝트-기획-목차)
-5. [시연 영상](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#시연-영상-목차)
-6. [WBS](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#WBS-목차)
-7. [폴더 구조](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#폴더-구조-목차)
-8. [페이지 및 URL 구조](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#페이지-및-URL-구조-목차)
-9. [API 문서화](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#API-문서화-목차)
-10. [시퀀스 다이어그램](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#시퀀스-다이어그램-목차)
-11. [클래스 다이어그램](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#클래스-다이어그램-목차)
-12. [ERD](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#ERD-목차)
-13. [AWS 배포](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#AWS-배포-목차)
-14. [트러블 슈팅](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#트러블-슈팅-목차)
-15. [회고](https://github.com/obokproject/razvery-fe?tab=readme-ov-file#회고)
+2. [팀 소개 및 기술스택](#팀-소개-및-기술스택)
+3. [링크](#링크)
+4. [프로젝트 기획](#프로젝트-기획-목차)
+5. [시연 영상](#시연-영상)
+6. [WBS](#wbs)
+7. [폴더 구조](#폴더-구조)
+8. [페이지 및 URL 구조](#페이지-및-url-구조)
+9. [API 문서화](#api-문서화)
+10. [시퀀스 다이어그램](#시퀀스-다이어그램)
+11. [클래스 다이어그램](#클래스-다이어그램)
+12. [ERD](#erd)
+13. [AWS 배포](#aws-배포-목차)
+14. [트러블 슈팅](#트러블-슈팅-목차)
+15. [회고](#회고)
 
-## 팀 소개 및 기술 스택
+## 팀 소개 및 기술스택
 
 - 기획팀: 김상윤, 윤상수
 - 개발팀: 박초롱, 변윤석
@@ -45,16 +45,20 @@
 - 유저저니맵, 페르소나<br>
 - 화면흐름도<br>
 - [코딩 컨벤션/ 폴더구조/ GitHub 전략](https://mathdev-park.notion.site/GitHub-Flow-32f89991bd0442eca822662076da1a9c?pvs=4)
+- QA테스트
   <br>
 
-## 시연 영상 [목차](#목차)
+
+## 시연 영상 
 
 ![video1](https://github.com/user-attachments/assets/da4bc760-0bbd-498a-9e8f-1a6e36ac02c7)
 <br>
 ![video2](https://github.com/user-attachments/assets/5c08e161-8ed9-470b-89ad-38c8372d08b7)
 <br>
 
-## WBS [목차](#목차)
+## WBS
+
+<details><summary>기획과 개발 일정</summary>
 
 ```mermaid
 gantt
@@ -139,7 +143,16 @@ section 마무리
 최종 발표 :milestone, 2024-09-30, 0d
 ```
 
-## 폴더 구조 [목차](#목차)
+</details>
+<br>
+
+ [목차](#목차)
+<br>
+
+## 폴더 구조 
+
+<details><summary> 백엔드, 프론트엔드 폴더구조
+</summary>
 
 ```bash
 client/
@@ -176,9 +189,11 @@ server/
 └── server.js
 ```
 
+</details>
+
 <br>
 
-## 페이지 및 URL 구조 [목차](#목차)
+## 페이지 및 URL 구조 
 
 | 페이지      | URL             | 설명                                       | 주요 기능                                              |
 | ----------- | --------------- | ------------------------------------------ | ------------------------------------------------------ |
@@ -192,13 +207,17 @@ server/
 
 <br>
 
-## API 문서화 [목차](#목차)
+## API 문서화 
 
 <img src="https://github.com/user-attachments/assets/3ec3376a-247e-4b6d-bfa6-abe414aa5b23" />
 
 <br>
 
-## 시퀀스 다이어그램 [목차](#목차)
+[목차](#목차)
+<br>
+## 시퀀스 다이어그램 
+
+<details><summary>객체와 상호작용</summary>
 
 ```mermaid
 sequenceDiagram
@@ -280,7 +299,12 @@ sequenceDiagram
 
 <br>
 
-## 클래스 다이어그램 [목차](#목차)
+</details>
+<br>
+
+## 클래스 다이어그램
+
+<details><summary>구조와 속성</summary>
 
 ```mermaid
 classDiagram
@@ -356,8 +380,12 @@ classDiagram
 ```
 
 <br>
+</details>
+<br>
 
-## ERD [목차](#목차)
+## ERD
+
+<details><summary>데이터베이스 설계</summary>
 
 ```mermaid
 erDiagram
@@ -432,6 +460,7 @@ erDiagram
     }
 ```
 
+</details>
 <br>
 
 ## AWS 배포 [목차](#목차)
@@ -469,27 +498,31 @@ Amazon CloudWatch를 사용하여 전체 시스템 모니터링<br>
 ## 트러블 슈팅 [목차](#목차)
 
 - 실시간 양방향 통신: Socket.io를 사용한 실시간 업데이트 구현<br>
-- 채팅과 키워드 프론트엔드에서만 매핑하려다 키워드 삭제 후 재입장 시 매핑 불가: keyword 테이블에 chat_id 컬럼을 추가해 DB에서 매핑<br>
-- 포스트잇 기능: <br>
+- 채팅과 키워드 프론트엔드에서만 매핑하려다 키워드 삭제 후 재입장 시 매핑 불가:  <br>keyword 테이블에 chat_id 컬럼을 추가해 DB에서 매핑<br>
+- AWS 프리티어 환경에서 채팅 기능을 테스트하다 과부하가 발생하여 EC2 인스턴스가 중지되고 PM2 프로세스가 종료되는 현상이 발생:<br>
+  CPU 과부하: 실시간 메시지 처리로 인해 CPU 사용량이 급증<br>
+  CloudWatch를 사용하여 CPU 사용량, 메모리 사용량, 네트워크 I/O를 모니터링, 로드밸런싱 사용함<br>
+- 포스트잇 기능:<br>
   다수의 사용자가 이동할 시에 socket안정성 문제는 호스트만 이동하는 것으로 전환<br>
   중간에 최적화 과정에서 중간에 걸치거나 하는 식으로 원하는 곳으로 이동하지 않아 이상했는데 react-beautiful-dnd 사용 문제라는 것을 알게 됨. react-dnd는 가능한데 시간이 별로 남지 않아 기획을 바꾸지 않기로 함<br>
-- 칸반 보드 순서가 드롭한 순서로 놓이지 않는 오류 - 정렬만 하게 해둬서 만들어진 순서와 아래에 붙이는 것으로 생각했었는데 중요도에 따라 위로 올릴수 있어서 DB 테이블에 order컬럼을 추가
+- 칸반 보드 순서가 드롭한 순서로 놓이지 않는 오류<br>
+  정렬만 하게 해둬서 만들어진 순서와 아래에 붙이는 것으로 생각했었는데 중요도에 따라 위로 올릴수 있어서 DB 테이블에 order컬럼을 추가<br>
 - React-beautiful-dnd가 적용되지 않는 문제: stricmode에서 적용되지 않아 제거 또는 주석처리함<br>
 - 페이지 이동시 스크롤이 고정되는 이슈 (푸터에서 페이지 라우팅하면 하단에 고정)<br>
   원인: React (SPA) Router의 기본 동작과 브라우저의 기본 동작의 충돌<br>
   해결: scrollto(0,0) 컴포넌트 추가함 <br>
-  <br>
-- 보안 HTTPS 적용하고 싶었으나 SSL인증서를 발급받지 못했지만 Route53을 시도해 보았음 <br>
+- 보안 HTTPS 적용하고 싶어서 SSL인증서를 발급받으려고 했다가 AWS를 써야해서 ACM을 받고 Route53을 시도해봄<br>
   <br>
 
 ## 회고
 
-- 박초롱: 이번 프로젝트는 개인적 성장의 측면에서는 배웠던 것 이상의 새로운 기술에 도전하면서 다양한 오류들을 마주했습니다. 많은 오류들을 해결해 나가며 기술적으로 성장할 수 있었고, 문제 해결 능력도 향상되었다고 느꼈습니다. 그리고 기술적인 도전뿐만 아니라 팀워크의 중요성을 동시에 경험할 수 있는 소중한 시간이었습니다. 물론 진행하며 기획팀과 개발팀 간의 '언어의 차이'를 느낀 적이 있었지만, 그럴때마다 팀원들 각자의 영역을 존중하고 어떻게 하면 더 잘 설명할 수 있을까 고민하고 개선해 나갔습니다. 이러한 서로를 보완하고 이해하는 과정들이 저희의 프로젝트의 완성도를 높이는 핵심 요소가 되었다고 생각합니다. <br>
-- 변윤석: 프로젝트를 진행하면서 많은 배움을 얻을 수 있었고, 코드 로직에 대한 깊이 있는 이해를 쌓을 수 있는 귀중한 시간이었습니다.
-  비록 부족한 부분도 있었지만, 훌륭한 팀원들과의 협업 덕분에 어려운 과제들을 함께 해결하며 끝까지 완성할 수 있었습니다.
-  이 과정에서 팀워크의 중요성을 다시 한번 깨닫게 되었고, 앞으로도 성장할 수 있는 기반을 다진 것 같습니다<br>
+- 변윤석: 실시간 데이터 처리와 성능 최적화의 중요성<br>
+  프로젝트를 통해 성능 최적화의 중요성을 깨달았고, 쿼리 최적화와 캐싱을 통해 응답 시간을 개선할 수 있었습니다. 또한, 실시간 통신에서 발생하는 동시성 문제를 해결하며 실시간 데이터 처리의 복잡성을 이해하게 되었습니다. 팀원들과의 원활한 협업 덕분에 어려운 문제들을 함께 해결하며 프로젝트를 성공적으로 완수할 수 있었습니다.<br>
+- 박초롱: 기술적 성장과 의사소통<br>
+  처음에는 "내 몫을 다할 수 있을까?", "폐를 끼치지 않을까?"라는 걱정으로 시작한 프로젝트였지만, 진행하면서 소통하는 법을 배우고 서로의 부족한 점을 보완하려고 노력하다 보니 진정한 ‘팀’이 되었다는 느낌이 들었습니다. 매번 스크럼을 즐겁게 만들어준 팀원들에게 진심으로 감사의 말을 전하고 싶습니다. 프론트엔드 뿐만 아니라 배포, 테스트, 최적화까지 진행하면서 전체 서비스 개발 과정을 모두 다뤄볼 수 있었고 보안 이슈, 과부하 등 실질적인 난관을 극복하며 많이 배웠습니다. <br>
 - 김상윤: 명확한 사용자 페르소나 정의의 중요성과 기획 <br>
-- 윤상수: 기획의 ㄱ도 모르는 상태로 시작했지만 하나의 결과물이 나와버렸습니다. 이게 되나 싶었는데 되네요.
+  초기 기획 단계에서 타겟 사용자 페르소나를 명확히 정의하지 않아 프로젝트 방향성을 잃었다. 서비스 특성상 모바일이 적합했지만 PC에만 집중했고, 모바일 접근성을 향상시켰다면 서비스 사용성에 더 유리했을 것 이다. 또한 사용자들의 구체적인 동기를 파악하지 못해 요구를 충분히 반영하지 못하였고, 사용자 요구를 빠르게 파악하고 대응하는 것이 중요함을 알았다. 큰 실수는 Admin 페이지 기획을 도중에 갑작스럽게 포함시킨 것이었다. 그러나 기획과 개발 간의 조율로 문제를 원만히 해결할 수 있었다. <br>
+- 윤상수: 기획의 ㄱ도 모르는 상태로 시작했지만 하나의 결과물이 나와버렸습니다. 이게 되나 싶었는데 되네요.<br>
   팀원 모두 처음 하시는 분들인데 너무 잘 해주셨고 덕분에 저도 생각 이상으로 해낼 수 있었던 것 같습니다.<br>
   <br>
   <br>
